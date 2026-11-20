@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- สำรองข้อมูลอัตโนมัติ (Android 12+): เก็บเซฟเกม/ค่าตั้งค่า แต่ไม่เก็บ BIOS (ลิขสิทธิ์) -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="system/" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="file" path="system/" />
+    </device-transfer>
+</data-extraction-rules>

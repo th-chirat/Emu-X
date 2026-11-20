@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  AndroidManifest.xml — "บัตรประชาชน" ของแอพ: ชื่อ ไอคอน หน้าจอ สิทธิ์ที่ขอ
+  ไม่ขอสิทธิ์อ่านไฟล์ทั้งเครื่อง เพราะใช้ SAF (ผู้ใช้เลือกโฟลเดอร์เอง) → ผ่านนโยบาย Play ง่าย
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- ทัชสกรีน/จอยไม่บังคับ (ติดตั้งบน Android TV ได้ด้วย) -->
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <uses-feature android:name="android.hardware.gamepad" android:required="false" />
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+
+    <application
+        android:name=".AllEmulatorApp"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:banner="@drawable/ic_launcher_background"
+        android:label="@string/app_name"
+        android:appCategory="game"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AllEmulator"
+        tools:targetApi="36">
+
+        <!-- รหัสแอพ AdMob (ตั้งใน app/build.gradle.kts) -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
+        <!-- รหัสโฆษณา interstitial ที่ AdManager อ่านไปใช้ -->
+        <meta-data
+            android:name="com.allemulator.ADMOB_INTERSTITIAL_ID"
+            android:value="${admobInterstitialId}" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AllEmulator.Splash"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ไอคอนแอพ: จอยเกมกระจกใส (วาดเอง ไม่ใช้โลโก้ของบริษัทใด) อยู่ในพื้นที่ปลอดภัยตรงกลาง -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- ตัวจอย (กระจกขาวโปร่ง) -->
+    <path
+        android:fillColor="#59FFFFFF"
+        android:pathData="M36,38 L72,38 C82,38 88,46 89,56 L91,70 C92,77 86,81 81,76 L73,67 L35,67 L27,76 C22,81 16,77 17,70 L19,56 C20,46 26,38 36,38 Z"
+        android:strokeWidth="1.6"
+        android:strokeColor="#E6FFFFFF" />
+    <!-- ปุ่มทิศ -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M34,48 h4 v6 h6 v4 h-6 v6 h-4 v-6 h-6 v-4 h6 z" />
+    <!-- ปุ่มกด 4 ปุ่ม -->
+    <path android:fillColor="#FFFFFFFF" android:pathData="M71,49 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M71,61 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M65,55 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M77,55 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+    <!-- ไฮไลต์สะท้อนแสงด้านบน -->
+    <path
+        android:fillColor="#40FFFFFF"
+        android:pathData="M38,41 L70,41 C76,41 80,44 82,48 L26,48 C28,44 32,41 38,41 Z" />
+</vector>

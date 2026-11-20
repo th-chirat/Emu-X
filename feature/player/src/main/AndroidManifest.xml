@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Manifest ของโมดูลหน้าเล่นเกม
+  configChanges: หมุนจอแล้ว "ไม่ต้อง" สร้าง Activity ใหม่ (ไม่งั้น emulator จะเริ่มเกมใหม่ทุกครั้งที่หมุน)
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-feature android:glEsVersion="0x00020000" android:required="true" />
+    <application>
+        <activity
+            android:name=".GameActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+            android:screenOrientation="fullUser"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|uiMode" />
+    </application>
+</manifest>

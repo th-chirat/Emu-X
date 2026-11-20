@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ธีมระดับระบบ (ก่อน Compose วาด): พื้นหลังเข้ม กันจอขาวแวบตอนเปิดแอพ -->
+<resources>
+    <color name="glass_background">#FF070A18</color>
+
+    <style name="Theme.AllEmulator" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/glass_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <!-- หน้า splash ตอนเปิดแอพ -->
+    <style name="Theme.AllEmulator.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/glass_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <item name="postSplashScreenTheme">@style/Theme.AllEmulator</item>
+    </style>
+</resources>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- สำรองข้อมูลอัตโนมัติ (Android 8-11): เก็บเซฟเกม/ค่าตั้งค่า แต่ไม่เก็บ BIOS (ลิขสิทธิ์) -->
+<full-backup-content>
+    <exclude domain="file" path="system/" />
+</full-backup-content>

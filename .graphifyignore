@@ -1,0 +1,7 @@
+# ไม่ต้องใส่ในแผนที่โค้ด: ไฟล์ build, core ที่ดาวน์โหลดมา, ไฟล์ระบบ PPSSPP
+build/
+.gradle/
+app/src/main/jniLibs/
+app/src/main/assets/
+cores-build/
+graphify-out/
