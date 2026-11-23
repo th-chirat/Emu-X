@@ -4,7 +4,7 @@
  * หน้าแรกของแอพ (บรีฟข้อ 1.1)
  *
  *   ┌──────────────────────────────┐
- *   │ ALL Emulator           [⚙]  │  ← หัวหน้าจอ
+ *   │ Emu-X           [⚙]  │  ← หัวหน้าจอ
  *   │ เล่นต่อ: [เกม][เกม][เกม] →   │  ← เกมล่าสุด (โชว์เมื่อเคยเล่น)
  *   │ ┌──────┐ ┌──────┐            │
  *   │ │ PSP  │ │ PS1  │  ...       │  ← การ์ดกระจกของแต่ละเครื่อง
@@ -77,7 +77,7 @@ fun HomeScreen(
     GlassScaffold {
         Column(Modifier.fillMaxSize()) {
             GlassTopBar(
-                title = "ALL Emulator",
+                title = "Emu-X",
                 subtitle = tr("เลือกเครื่องเกมที่อยากเล่น", "Pick a console to play"),
                 actions = {
                     // สวิตช์ภาษา TH / EN (บรีฟรอบ 2 ข้อ 4)

@@ -1,7 +1,7 @@
-# Graph Report - ALL Emulator Project  (2026-11-22)
+# Graph Report - ALL Emulator Project  (2026-11-23)
 
 ## Corpus Check
-- 71 files · ~25,830 words
+- 71 files · ~25,817 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 28 file(s) not represented in the graph (top: .xml 10, .pro 9, (none) 4)
 - WARNING: 28 of 105 files seen (27%) have no supported extractor and are missing from this graph entirely. It may look complete while representing only part of the codebase.
@@ -12,7 +12,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a1b8ffb3`
+- Built from commit: `e5c7c752`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -97,7 +97,7 @@ Nodes (8): GameRepository, GameSystem, GB, GBA, GBC, NES, PS1, PSP
 
 ### Community 4 - "สถาปัตยกรรมของ ALL Emulator"
 Cohesion: 0.07
-Nodes (25): 1. ภาพรวมโมดูล, 2. ไฟล์สำคัญ — "อยากแก้ X ไปที่ไฟล์ไหน", 3. เส้นทางตอนกดเล่นเกม, 4. การเก็บข้อมูล, 5. Liquid Glass ทำงานยังไง, 6. ข้อจำกัดที่ควรรู้, สถาปัตยกรรมของ ALL Emulator, Emulator cores ที่ใช้ (+17 more)
+Nodes (25): 1. ภาพรวมโมดูล, 2. ไฟล์สำคัญ — "อยากแก้ X ไปที่ไฟล์ไหน", 3. เส้นทางตอนกดเล่นเกม, 4. การเก็บข้อมูล, 5. Liquid Glass ทำงานยังไง, 6. ข้อจำกัดที่ควรรู้, สถาปัตยกรรมของ Emu-X, Emulator cores ที่ใช้ (+17 more)
 
 ### Community 5 - "AppSettingsScreen.kt"
 Cohesion: 0.19

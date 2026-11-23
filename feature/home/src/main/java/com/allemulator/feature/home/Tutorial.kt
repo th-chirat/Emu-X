@@ -76,7 +76,7 @@ private data class TutorialPage(val icon: ImageVector, val title: String, val bo
 private fun pages() = listOf(
     TutorialPage(
         Icons.Rounded.SportsEsports,
-        tr("ยินดีต้อนรับสู่ ALL Emulator", "Welcome to ALL Emulator"),
+        tr("ยินดีต้อนรับสู่ Emu-X", "Welcome to Emu-X"),
         tr(
             "เล่นเกม PSP, PS1, Game Boy, GBC, GBA และ NES ได้ในแอพเดียว\nแอพไม่มีเกมแถมมา ใช้ไฟล์เกมที่คุณเป็นเจ้าของ",
             "Play PSP, PS1, Game Boy, GBC, GBA and NES games in one app.\nNo games are included — use game files you own.",

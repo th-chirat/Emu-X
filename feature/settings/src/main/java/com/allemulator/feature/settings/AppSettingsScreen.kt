@@ -121,7 +121,7 @@ fun AppSettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(20.dp),
             ) {
                 // ---------------- ลบโฆษณา ----------------
-                GlassSection("ALL Emulator Premium") {
+                GlassSection("Emu-X Premium") {
                     if (premium) {
                         Icon(Icons.Rounded.CheckCircle, null, tint = Color(0xFF5BE38A))
                         Text(tr("คุณเป็นสมาชิก Premium ตลอดชีพ ไม่มีโฆษณาอีกต่อไป ขอบคุณที่สนับสนุน!", "You have lifetime Premium — no more ads. Thanks for your support!"), color = Color.White)
@@ -148,7 +148,7 @@ fun AppSettingsScreen(
 
                 // ---------------- เกี่ยวกับ ----------------
                 GlassSection(tr("เกี่ยวกับ", "About")) {
-                    Text(tr("ALL Emulator เวอร์ชัน $versionName", "ALL Emulator version $versionName"), color = Color.White)
+                    Text(tr("Emu-X เวอร์ชัน $versionName", "Emu-X version $versionName"), color = Color.White)
                     Text(
                         tr("แอพนี้ไม่มีเกมหรือ BIOS แถมมาให้ กรุณาใช้ไฟล์เกมที่คุณเป็นเจ้าของโดยชอบด้วยกฎหมายเท่านั้น", "This app includes no games or BIOS. Only use game files you legally own."),
                         color = GlassColors.TextSecondary,

@@ -22,7 +22,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ALL Emulator"
+rootProject.name = "Emu-X"
 
 // ---- โมดูลทั้งหมดของแอพ (ดูแผนภาพใน docs/ARCHITECTURE.md) ----
 include(":app")                     // จุดเริ่มแอพ + navigation

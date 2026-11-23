@@ -1,4 +1,4 @@
-# ALL Emulator — notes for AI assistants
+# Emu-X — notes for AI assistants
 
 Android emulator frontend (Kotlin + Jetpack Compose, minSdk 26) wrapping libretro cores via LibretroDroid.
 

@@ -40,7 +40,7 @@
 
 ## C. สร้างแอพใน Play Console 👤
 
-1. Create app → ชื่อ **ALL Emulator** → App (ไม่ใช่ Game ก็ได้ แต่แนะนำ **Game**) → Free
+1. Create app → ชื่อ **Emu-X** → App (ไม่ใช่ Game ก็ได้ แต่แนะนำ **Game**) → Free
 2. **App content** (ต้องกรอกครบก่อนปล่อย):
    - Privacy policy → ลิงก์ไปที่ `docs/PRIVACY_POLICY.md` บน GitHub
    - Ads → **Yes, my app contains ads**

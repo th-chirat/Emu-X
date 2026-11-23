@@ -1,4 +1,4 @@
-# ALL Emulator
+# Emu-X
 
 แอพ Android รวม emulator 6 เครื่องในแอพเดียว — **PSP, PS1, Game Boy, Game Boy Color, Game Boy Advance, NES**
 UI สไตล์ **Liquid Glass** · รองรับ **Android 8.0 (API 26) ขึ้นไป** · มีโฆษณาทุก 1 ชม. + ซื้อลบโฆษณาตลอดชีพ
