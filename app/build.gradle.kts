@@ -43,8 +43,8 @@ android {
         manifestPlaceholders["admobAppId"] = admobAppId
         manifestPlaceholders["admobInterstitialId"] = admobInterstitialId
 
-        buildConfigField("String", "PRIVACY_URL", "\"https://github.com/th-chirat/all-emulator/blob/main/docs/PRIVACY_POLICY.md\"")
-        buildConfigField("String", "SOURCE_URL", "\"https://github.com/th-chirat/all-emulator\"")
+        buildConfigField("String", "PRIVACY_URL", "\"https://github.com/th-chirat/Emu-X/blob/main/docs/PRIVACY_POLICY.md\"")
+        buildConfigField("String", "SOURCE_URL", "\"https://github.com/th-chirat/Emu-X\"")
     }
 
     signingConfigs {
