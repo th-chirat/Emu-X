@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- ไอคอนแอพ: จอยเกมกระจกใส (วาดเอง ไม่ใช้โลโก้ของบริษัทใด) อยู่ในพื้นที่ปลอดภัยตรงกลาง -->
+<!-- ไอคอนแอพ: จอยเกมกระจกใส (วาดเอง ไม่ใช้โลโก้ของบริษัทใด)
+     ย่อเหลือ 72% (scale 0.72) ให้พอดีพื้นที่ปลอดภัยของไอคอน: ไม่เล็กเกิน และไม่ถูกตัดขอบในมือถือที่ไอคอนเป็นวงกลม -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <group
+        android:pivotX="54"
+        android:pivotY="57"
+        android:scaleX="0.72"
+        android:scaleY="0.72">
     <!-- ตัวจอย (กระจกขาวโปร่ง) -->
     <path
         android:fillColor="#59FFFFFF"
@@ -24,4 +30,5 @@
     <path
         android:fillColor="#40FFFFFF"
         android:pathData="M38,41 L70,41 C76,41 80,44 82,48 L26,48 C28,44 32,41 38,41 Z" />
+    </group>
 </vector>

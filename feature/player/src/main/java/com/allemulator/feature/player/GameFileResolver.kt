@@ -6,9 +6,9 @@
  *
  * วิธีส่งเกมให้ core มี 3 แบบ (LoadStrategy):
  *   VFS    — ส่ง file descriptor เป็น "ไฟล์เสมือน" (libretro VFS) ไม่ต้องก๊อป
- *             ใช้กับเกมแผ่น (PS1/PSP/NDS) เกมหลายไฟล์ (.cue+.bin) ส่งไฟล์ข้างเคียงไปด้วย
- *   FD_PATH — ส่ง path พิเศษ /proc/self/fd/<n> (PS2 .iso — Play! ไม่รองรับ VFS)
- *   COPY    — ก๊อปไปไว้ใน cache ก่อน — ใช้กับตลับเกมเล็ก (GB/GBC/NES, แตก .zip ให้ด้วย)
+ *             ใช้กับเกมแผ่น (PS1/PSP) เกมหลายไฟล์ (.cue+.bin) ส่งไฟล์ข้างเคียงไปด้วย
+ *   COPY    — ก๊อปไปไว้ใน cache ก่อน — ใช้กับตลับเกมเล็ก (GB/GBC/GBA/NES)
+ *             ไฟล์ .zip ของทุกเครื่อง → แตกไฟล์ลง cache อัตโนมัติ
  *             และเป็นทางสำรองเมื่อแบบอื่นล้มเหลว
  *             เก็บสำเนาล่าสุดไว้ 1 เกม เปิดเกมเดิมซ้ำจะไม่ก๊อปใหม่
  *
@@ -17,6 +17,7 @@
  */
 package com.allemulator.feature.player
 
+import com.allemulator.core.emulation.tr
 import android.content.Context
 import android.net.Uri
 import android.os.ParcelFileDescriptor
@@ -62,19 +63,20 @@ class GameFileResolver(private val context: Context) {
         val ext = game.fileName.substringAfterLast('.').lowercase()
         val files = listOf(game.fileName to uri) + siblingsFor(game, uri, ext)
 
+        // .zip ทุกเครื่อง → แตกไฟล์ก่อน (core ส่วนใหญ่เปิด zip เองไม่ได้)
+        if (ext == "zip") return extractZipToCache(game, uri, system)
+        // ไฟล์ที่แตกจาก zip ไว้ในแอพแล้ว (file://) → เปิดด้วย path ตรงๆ ได้เลย
+        if (uri.scheme == "file") return ResolvedGame.Path(requireNotNull(uri.path), LoadStrategy.COPY)
         if (forceCopy) return copyToCache(game, files)
 
         return when (system) {
             // ตลับเกมเล็ก (ไม่กี่ MB) → ก๊อปลง cache (ใช้เวลาไม่ถึงวินาที และ core ทุกตัวเปิดได้)
             // ทดสอบแล้ว: fceumm โหลดจาก RAM (BYTES) ไม่ได้ จึงใช้ไฟล์จริงแทน
-            GameSystem.GB, GameSystem.GBC, GameSystem.NES ->
-                if (ext == "zip") extractZipToCache(game, uri, system) else copyToCache(game, files)
+            GameSystem.GB, GameSystem.GBC, GameSystem.GBA, GameSystem.NES -> copyToCache(game, files)
 
-            // PS2: Play! ไม่รองรับ VFS → .iso ใช้ /proc/self/fd, แบบอื่นก๊อป
-            GameSystem.PS2 -> if (ext == "iso") fdPath(uri) else copyToCache(game, files)
 
-            // เกมแผ่น/NDS → ลองไฟล์เสมือนก่อน (ไม่เปลืองพื้นที่)
-            GameSystem.PS1, GameSystem.PSP, GameSystem.NDS -> ResolvedGame.Virtual(
+            // เกมแผ่น → ลองไฟล์เสมือนก่อน (ไม่เปลืองพื้นที่)
+            GameSystem.PS1, GameSystem.PSP -> ResolvedGame.Virtual(
                 files.mapNotNull { (name, u) -> resolver.openFileDescriptor(u, "r")?.let { VirtualFile(name, it) } },
             )
         }
@@ -85,28 +87,31 @@ class GameFileResolver(private val context: Context) {
     // -------------------------------------------------------------------------
     private fun extractZipToCache(game: GameEntity, uri: Uri, system: GameSystem): ResolvedGame {
         val dir = cacheDirFor(game)
-        val input = requireNotNull(resolver.openInputStream(uri)) { "เปิดไฟล์เกมไม่ได้" }
-        // หาไฟล์ข้างในที่นามสกุลตรงกับเครื่องนี้
-        ZipInputStream(input.buffered()).use { zip ->
-            while (true) {
-                val entry = zip.nextEntry ?: break
-                val inner = entry.name.substringAfterLast('.', "").lowercase()
-                if (!entry.isDirectory && inner != "zip" && inner in system.extensions) {
+        val done = File(dir, ".extracted")
+        if (!done.exists()) {
+            // แตกทุกไฟล์ (เกมแผ่นอาจมี .cue + .bin หลายไฟล์ที่ต้องอยู่ด้วยกัน)
+            val input = requireNotNull(resolver.openInputStream(uri)) { tr("เปิดไฟล์เกมไม่ได้", "Can't open the game file") }
+            ZipInputStream(input.buffered()).use { zip ->
+                while (true) {
+                    val entry = zip.nextEntry ?: break
+                    if (entry.isDirectory) continue
+                    // ข้ามไฟล์ขยะที่ Mac ใส่มาใน zip (__MACOSX/ และไฟล์ชื่อขึ้นต้น "._") — ไม่ใช่เกมจริง
+                    val base = entry.name.substringAfterLast('/')
+                    if (entry.name.startsWith("__MACOSX/") || base.startsWith(".")) continue
                     val target = File(dir, entry.name.substringAfterLast('/'))
-                    target.outputStream().use { zip.copyTo(it) }
-                    return ResolvedGame.Path(target.absolutePath, LoadStrategy.COPY)
+                    // กันไฟล์ zip อันตรายที่ตั้งชื่อ "../" เพื่อเขียนนอกโฟลเดอร์ (zip slip)
+                    if (!target.canonicalPath.startsWith(dir.canonicalPath)) continue
+                    target.outputStream().use { zip.copyTo(it, 1 shl 20) }
                 }
             }
+            done.createNewFile() // เปิดเกมเดิมซ้ำจะไม่ต้องแตกใหม่
         }
-        error("ไม่พบไฟล์เกม ${system.displayName} ในไฟล์ zip นี้")
-    }
-
-    // -------------------------------------------------------------------------
-    // FD_PATH: เปิด fd ค้างไว้แล้วคืน path แบบ /proc/self/fd/N
-    // -------------------------------------------------------------------------
-    private fun fdPath(uri: Uri): ResolvedGame {
-        val pfd = requireNotNull(resolver.openFileDescriptor(uri, "r")) { "เปิดไฟล์เกมไม่ได้" }
-        return ResolvedGame.Path("/proc/self/fd/${pfd.fd}", LoadStrategy.FD_PATH, keepAlive = pfd)
+        // เลือกไฟล์หลัก: .cue/.m3u ก่อน (เกมแผ่น) แล้วค่อยไฟล์อื่นที่เครื่องนี้รับ
+        val candidates = dir.listFiles().orEmpty().filter { system.accepts(it.name) && !it.name.endsWith(".zip", true) }
+        val main = candidates.firstOrNull { it.extension.lowercase() in setOf("cue", "m3u") }
+            ?: candidates.maxByOrNull { it.length() }
+            ?: error(tr("ไม่พบไฟล์เกม ${system.displayName} ในไฟล์ zip นี้", "No ${system.displayName} game inside this zip"))
+        return ResolvedGame.Path(main.absolutePath, LoadStrategy.COPY)
     }
 
     // -------------------------------------------------------------------------
@@ -135,10 +140,13 @@ class GameFileResolver(private val context: Context) {
     // -------------------------------------------------------------------------
     // เกมหลายไฟล์: .cue อ้างถึง .bin, .m3u อ้างถึงหลายแผ่น
     // -------------------------------------------------------------------------
-    private fun siblingsFor(game: GameEntity, uri: Uri, ext: String): List<Pair<String, Uri>> = when (ext) {
+    private fun siblingsFor(game: GameEntity, uri: Uri, ext: String): List<Pair<String, Uri>> = when {
+        uri.scheme == "file" || game.parentUri.isEmpty() -> emptyList() // ไฟล์ในแอพ/ไฟล์เดี่ยว ไม่ต้องหา
+        else -> when (ext) {
         "cue" -> referencedFiles(uri, game.parentUri, cueRegex)
         "m3u" -> referencedFiles(uri, game.parentUri, m3uRegex)
         else -> emptyList()
+        }
     }
 
     private fun referencedFiles(playlist: Uri, parentUri: String, pattern: Regex): List<Pair<String, Uri>> {
@@ -175,6 +183,7 @@ class GameFileResolver(private val context: Context) {
     }
 
     private companion object {
+
         /** บรรทัดใน .cue เช่น  FILE "Game (Track 1).bin" BINARY */
         val cueRegex = Regex("""(?im)^\s*FILE\s+"?([^"\r\n]+?)"?\s+\w+\s*$""")
         /** บรรทัดใน .m3u = ชื่อไฟล์ 1 บรรทัด (ข้ามบรรทัดที่ขึ้นต้นด้วย #) */

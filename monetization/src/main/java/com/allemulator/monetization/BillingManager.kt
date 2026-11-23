@@ -15,6 +15,7 @@
  */
 package com.allemulator.monetization
 
+import com.allemulator.core.emulation.tr
 import android.app.Activity
 import android.content.Context
 import android.util.Log
@@ -121,7 +122,7 @@ class BillingManager @Inject constructor(
     fun purchase(activity: Activity) {
         val details = product
         if (details == null) {
-            messages.value = "ยังเชื่อมต่อร้านค้าไม่ได้ ลองใหม่อีกครั้ง"
+            messages.value = tr("ยังเชื่อมต่อร้านค้าไม่ได้ ลองใหม่อีกครั้ง", "Can't reach the store yet, please try again")
             connect()
             return
         }
@@ -139,14 +140,14 @@ class BillingManager @Inject constructor(
                 .filter { PRODUCT_ID in it.products }
                 .forEach { p ->
                     when (p.purchaseState) {
-                        Purchase.PurchaseState.PURCHASED -> scope.launch { grant(p); messages.value = "ขอบคุณที่สนับสนุน! ลบโฆษณาเรียบร้อย" }
-                        Purchase.PurchaseState.PENDING -> messages.value = "รอการชำระเงิน เมื่อชำระแล้วโฆษณาจะหายเอง"
+                        Purchase.PurchaseState.PURCHASED -> scope.launch { grant(p); messages.value = tr("ขอบคุณที่สนับสนุน! ลบโฆษณาเรียบร้อย", "Thanks for your support! Ads removed") }
+                        Purchase.PurchaseState.PENDING -> messages.value = tr("รอการชำระเงิน เมื่อชำระแล้วโฆษณาจะหายเอง", "Payment pending — ads disappear once it's paid")
                         else -> Unit
                     }
                 }
             BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> refresh()
             BillingClient.BillingResponseCode.USER_CANCELED -> Unit
-            else -> messages.value = "ซื้อไม่สำเร็จ: ${result.debugMessage}"
+            else -> messages.value = tr("ซื้อไม่สำเร็จ: ${result.debugMessage}", "Purchase failed: ${result.debugMessage}")
         }
     }
 

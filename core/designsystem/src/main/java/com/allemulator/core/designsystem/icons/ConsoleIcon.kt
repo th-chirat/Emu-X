@@ -1,7 +1,11 @@
 /*
  * ConsoleIcon.kt
  * -----------------------------------------------------------------------------
- * ไอคอนเครื่องเกมแต่ละเครื่อง — วาดเองด้วยรูปทรงพื้นฐาน (สี่เหลี่ยม/วงกลม)
+ * ไอคอนเครื่องเกมแต่ละเครื่อง
+ *   - เครื่องที่มีรูปภาพ (res/drawable-nodpi/console_*.png) → ใช้รูปภาพ
+ *     รูปมาจากโฟลเดอร์ Asset_icon ของเจ้าของแอพ ตัดพื้นหลังและลบโลโก้ยี่ห้อออกแล้ว
+ *     (สร้างใหม่ได้ด้วย scripts/make-console-icons.py)
+ *   - ภาพวาด Canvas ด้านล่างเก็บไว้เป็นแบบสำรอง (เผื่อเพิ่มเครื่องใหม่ที่ยังไม่มีรูป)
  *
  * สำคัญ: ห้ามใช้โลโก้จริงของ Sony/Nintendo เพราะ Google Play จะปฏิเสธแอพ
  * (ละเมิดเครื่องหมายการค้า) ไอคอนนี้จึงเป็น "รูปทรงทั่วไป" ของเครื่องเล่นเกมแต่ละแบบ
@@ -12,6 +16,7 @@
 package com.allemulator.core.designsystem.icons
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -21,11 +26,26 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.allemulator.core.designsystem.R
 import com.allemulator.core.emulation.GameSystem
 
 /** วาดไอคอนเครื่องเกม */
 @Composable
 fun ConsoleIcon(system: GameSystem, modifier: Modifier = Modifier) {
+    val image = when (system) {
+        GameSystem.PSP -> R.drawable.console_psp
+        GameSystem.PS1 -> R.drawable.console_ps1
+        GameSystem.GB -> R.drawable.console_gb
+        GameSystem.GBC -> R.drawable.console_gbc
+        GameSystem.NES -> R.drawable.console_nes
+        GameSystem.GBA -> R.drawable.console_gba
+    }
+    if (image != null) {
+        Image(painterResource(image), contentDescription = system.displayName, modifier = modifier, contentScale = ContentScale.Fit)
+        return
+    }
     val start = Color(system.accentStart)
     val end = Color(system.accentEnd)
     Canvas(modifier) {
@@ -36,11 +56,10 @@ fun ConsoleIcon(system: GameSystem, modifier: Modifier = Modifier) {
         when (system) {
             GameSystem.PSP -> p.psp()
             GameSystem.PS1 -> p.discConsole()
-            GameSystem.PS2 -> p.towerConsole()
             GameSystem.GB -> p.handheld(color = false)
             GameSystem.GBC -> p.handheld(color = true)
             GameSystem.NES -> p.boxConsole()
-            GameSystem.NDS -> p.clamshell()
+            GameSystem.GBA -> p.wideHandheld()
         }
     }
 }
@@ -85,6 +104,16 @@ private class Painter(
         circle(80f, 50f, 2.6f, white); circle(92f, 50f, 2.6f, white)
     }
 
+    // ---- เครื่องพกพาแนวนอน ปุ่ม 2 ปุ่ม + ไหล่ L/R (GBA) ----
+    fun wideHandheld() {
+        rect(10f, 24f, 80f, 6f, 3f, white.copy(alpha = 0.55f)) // ปุ่มไหล่
+        rect(6f, 28f, 88f, 46f, 18f, body)
+        rect(30f, 34f, 40f, 30f, 3f, screen)
+        cross(17f, 48f, 13f, 4.2f)
+        circle(80f, 46f, 3.6f, white); circle(87f, 41f, 3.6f, white)
+        circle(80f, 64f, 1.6f, white); circle(86f, 64f, 1.6f, white)
+    }
+
     // ---- เครื่องคอนโซลแผ่นดิสก์ ฝาบนกลม (PS1) ----
     fun discConsole() {
         rect(8f, 30f, 84f, 44f, 6f, body)
@@ -92,14 +121,6 @@ private class Painter(
         circle(40f, 52f, 3f, white)
         rect(66f, 62f, 18f, 4f, 2f, white)
         circle(70f, 40f, 2.5f, white)
-    }
-
-    // ---- เครื่องคอนโซลตั้งตรง มีร่องแนวนอน (PS2) ----
-    fun towerConsole() {
-        rect(28f, 8f, 44f, 84f, 5f, body)
-        for (i in 0 until 5) rect(34f, 18f + i * 8f, 32f, 2.2f, 1f, white.copy(alpha = 0.55f))
-        rect(34f, 66f, 32f, 4f, 2f, white)
-        circle(50f, 80f, 3f, white)
     }
 
     // ---- เครื่องพกพาแนวตั้ง (GB / GBC) ----
@@ -127,13 +148,4 @@ private class Painter(
         circle(80f, 61f, 3f, Color(0xFFFF5A6E))
     }
 
-    // ---- เครื่องพกพาฝาพับ 2 จอ (NDS) ----
-    fun clamshell() {
-        rect(18f, 4f, 64f, 44f, 6f, body)
-        rect(26f, 10f, 48f, 32f, 3f, screen)
-        rect(18f, 52f, 64f, 44f, 6f, body)
-        rect(32f, 58f, 36f, 28f, 3f, screen)
-        cross(25f, 72f, 9f, 3f)
-        circle(75f, 68f, 2.2f, white); circle(75f, 76f, 2.2f, white)
-    }
 }

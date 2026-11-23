@@ -1,12 +1,10 @@
 /*
  * PerformanceMonitor.kt
  * -----------------------------------------------------------------------------
- * วัดค่าประสิทธิภาพเพื่อโชว์ใน overlay (บรีฟข้อ 1.2.1 "โชว์ fps/gpu/cpu")
+ * วัดค่าประสิทธิภาพเพื่อโชว์ใน overlay (บรีฟข้อ 1.2.1 — GPU ตัดออกตามบรีฟรอบ 2)
  *
  *   FPS  — นับเฟรมที่ emulator วาดเสร็จในแต่ละวินาที (แม่นยำ)
  *   CPU  — อ่าน /proc/self/stat ดูว่าแอพใช้ CPU ไปกี่ % ของทุกคอร์ (แม่นยำ)
- *   GPU  — Android ส่วนใหญ่ "ไม่อนุญาต" ให้แอพอ่าน % GPU
- *          เราลองอ่านไฟล์ของชิป Adreno/Mali ก่อน ถ้าอ่านไม่ได้จะโชว์ "N/A"
  *   RAM  — หน่วยความจำที่แอพใช้จริง (RSS)
  *   TEMP — อุณหภูมิแบตเตอรี่ (บอกได้ว่าเครื่องร้อนแค่ไหน)
  * -----------------------------------------------------------------------------
@@ -24,7 +22,6 @@ import java.io.File
 data class PerfSnapshot(
     val fps: Int = 0,
     val cpuPercent: Int? = null,
-    val gpuPercent: Int? = null,
     val frameTimeMs: Float = 0f,
     val ramMb: Int? = null,
     val batteryTempC: Float? = null,
@@ -37,15 +34,6 @@ class PerformanceMonitor(private val context: Context) {
     private var lastCpuTicks = readCpuTicks()
     private var lastCpuTime = SystemClock.elapsedRealtime()
     private val cores = Runtime.getRuntime().availableProcessors()
-
-    /** ไฟล์ % GPU ที่รู้จัก (ใช้ได้บางรุ่นเท่านั้น) — หาเจอครั้งเดียวแล้วจำไว้ */
-    private val gpuFile: File? by lazy {
-        listOf(
-            "/sys/class/kgsl/kgsl-3d0/gpu_busy_percentage", // Qualcomm Adreno
-            "/sys/kernel/gpu/gpu_busy",                       // บางรุ่น (Pixel/Exynos)
-            "/sys/class/misc/mali0/device/utilization",       // ARM Mali บางรุ่น
-        ).map(::File).firstOrNull { runCatching { it.canRead() && it.readText().isNotBlank() }.getOrDefault(false) }
-    }
 
     /** เรียกทุกครั้งที่ emulator วาดเฟรมเสร็จ */
     fun onFrame() { frames++ }
@@ -63,7 +51,6 @@ class PerformanceMonitor(private val context: Context) {
         return PerfSnapshot(
             fps = fps,
             cpuPercent = cpuPercent(now),
-            gpuPercent = gpuPercent(),
             frameTimeMs = if (fps > 0) 1000f / fps else 0f,
             ramMb = ramMb(),
             batteryTempC = batteryTemp(),
@@ -89,19 +76,6 @@ class PerformanceMonitor(private val context: Context) {
         lastCpuTime = now
         return (cpuMs / (wallMs * cores) * 100).toInt().coerceIn(0, 100)
     }
-
-    // ---------------- GPU ----------------
-
-    private fun gpuPercent(): Int? = runCatching {
-        val raw = gpuFile?.readText()?.trim() ?: return null
-        // รูปแบบไฟล์ต่างกันตามชิป: "45" หรือ "45 %" หรือ "busy total"
-        val nums = Regex("""\d+""").findAll(raw).map { it.value.toLong() }.toList()
-        when {
-            nums.size >= 2 && nums[1] > 0 && nums[0] <= nums[1] -> (nums[0] * 100 / nums[1]).toInt()
-            nums.isNotEmpty() -> nums[0].toInt().coerceIn(0, 100)
-            else -> null
-        }
-    }.getOrNull()
 
     // ---------------- RAM / อุณหภูมิ ----------------
 

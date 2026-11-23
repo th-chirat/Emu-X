@@ -4,7 +4,7 @@
  * เก็บ "ค่าตั้งค่า" ทั้งหมดของแอพด้วย DataStore (ไฟล์เล็กๆ ในเครื่อง)
  *
  *  - ค่าประสิทธิภาพ (ความลื่น) แยกตามเครื่อง
- *  - ค่า overlay FPS/CPU/GPU แยกตามเครื่อง
+ *  - ค่า overlay FPS/CPU แยกตามเครื่อง
  *  - ผังปุ่มจอยที่ผู้ใช้ลากย้าย แยกตามเครื่อง
  *  - ข้อมูลโฆษณา (โฆษณาล่าสุดแสดงเมื่อไร / ซื้อลบโฆษณาแล้วหรือยัง)
  *
@@ -21,6 +21,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.allemulator.core.emulation.AppLanguage
 import com.allemulator.core.emulation.ControllerLayout
 import com.allemulator.core.emulation.ControllerLayouts
 import com.allemulator.core.emulation.GameSystem
@@ -95,6 +96,14 @@ class SettingsRepository @Inject constructor(
     val haptics: Flow<Boolean> = store.data.map { it[KEY_HAPTICS] ?: true }
     suspend fun setHaptics(on: Boolean) { store.edit { it[KEY_HAPTICS] = on } }
 
+    /** ภาษาของแอพ (null = ยังไม่เคยเลือก → ใช้ตามภาษาเครื่อง) */
+    val language: Flow<AppLanguage?> = store.data.map { AppLanguage.fromCode(it[KEY_LANGUAGE]) }.distinctUntilChanged()
+    suspend fun setLanguage(lang: AppLanguage) { store.edit { it[KEY_LANGUAGE] = lang.code } }
+
+    /** ผู้ใช้ดูหน้าสอนใช้งาน (ครั้งแรกที่เปิดแอพ) แล้วหรือยัง */
+    val tutorialSeen: Flow<Boolean> = store.data.map { it[KEY_TUTORIAL_SEEN] ?: false }.distinctUntilChanged()
+    suspend fun setTutorialSeen(seen: Boolean) { store.edit { it[KEY_TUTORIAL_SEEN] = seen } }
+
     // ---------------- โฆษณา / การซื้อ ----------------
 
     /** ผู้ใช้ซื้อ "ลบโฆษณาตลอดชีพ" แล้วหรือยัง (cache ไว้ เพื่อให้ไม่โชว์โฆษณาแม้ออฟไลน์) */
@@ -119,5 +128,7 @@ class SettingsRepository @Inject constructor(
         val KEY_PREMIUM = booleanPreferencesKey("premium")
         val KEY_LAST_AD = longPreferencesKey("last_ad_shown_at")
         val KEY_FIRST_LAUNCH = longPreferencesKey("first_launch_at")
+        val KEY_LANGUAGE = stringPreferencesKey("language")
+        val KEY_TUTORIAL_SEEN = booleanPreferencesKey("tutorial_seen")
     }
 }

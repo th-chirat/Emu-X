@@ -24,12 +24,6 @@ class CoreOptionsTest {
     }
 
     @Test
-    fun ps2_never_exceeds_2x_on_mobile() {
-        val o = CoreOptions.build(GameSystem.PS2, PerformanceSettings(preset = PerformancePreset.PERFORMANCE, resolutionScale = 4))
-        assertEquals("2x", o["play_res_multi"])
-    }
-
-    @Test
     fun light_systems_have_no_options() {
         assertTrue(CoreOptions.build(GameSystem.NES, PerformanceSettings()).isEmpty())
     }

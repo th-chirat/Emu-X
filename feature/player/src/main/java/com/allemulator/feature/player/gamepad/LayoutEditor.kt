@@ -11,6 +11,7 @@
  */
 package com.allemulator.feature.player.gamepad
 
+import com.allemulator.core.emulation.tr
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -124,7 +125,7 @@ fun LayoutEditorScreen(onBack: () -> Unit, viewModel: LayoutEditorViewModel = hi
                 .background(Color(0xFF151B33)),
             contentAlignment = Alignment.Center,
         ) {
-            Text("พื้นที่จอเกม\n(หมุนมือถือเพื่อแก้ผังอีกแนว)", color = GlassColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
+            Text(tr("พื้นที่จอเกม\n(หมุนมือถือเพื่อแก้ผังอีกแนว)", "Game screen area\n(rotate the phone to edit the other layout)"), color = GlassColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
         }
 
         // ปุ่มที่ลากได้
@@ -163,10 +164,10 @@ fun LayoutEditorScreen(onBack: () -> Unit, viewModel: LayoutEditorViewModel = hi
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            GlassIconButton(Icons.AutoMirrored.Rounded.ArrowBack, "กลับ", onBack)
-            Text("แก้ไขปุ่ม ${viewModel.system.displayName}", color = Color.White, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-            GlassButton("รีเซ็ต", { viewModel.reset() }, icon = Icons.Rounded.RestartAlt)
-            GlassButton("บันทึก", { viewModel.save(onBack) }, icon = Icons.Rounded.Save, tint = GlassColors.Accent)
+            GlassIconButton(Icons.AutoMirrored.Rounded.ArrowBack, tr("กลับ", "Back"), onBack)
+            Text(tr("แก้ไขปุ่ม ${viewModel.system.displayName}", "Edit ${viewModel.system.displayName} buttons"), color = Color.White, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+            GlassButton(tr("รีเซ็ต", "Reset"), { viewModel.reset() }, icon = Icons.Rounded.RestartAlt)
+            GlassButton(tr("บันทึก", "Save"), { viewModel.save(onBack) }, icon = Icons.Rounded.Save, tint = GlassColors.Accent)
         }
 
         // แผงปรับขนาด/ความโปร่งใสของปุ่มที่เลือก
@@ -180,20 +181,20 @@ fun LayoutEditorScreen(onBack: () -> Unit, viewModel: LayoutEditorViewModel = hi
                     .glass(RoundedCornerShape(24.dp))
                     .padding(16.dp),
             ) {
-                Text("ปุ่ม: ${selected.label.ifEmpty { selected.id.uppercase() }}", color = Color.White, style = MaterialTheme.typography.titleMedium)
-                Text("ขนาด", color = GlassColors.TextSecondary)
+                Text(tr("ปุ่ม: ${selected.label.ifEmpty { selected.id.uppercase() }}", "Button: ${selected.label.ifEmpty { selected.id.uppercase() }}"), color = Color.White, style = MaterialTheme.typography.titleMedium)
+                Text(tr("ขนาด", "Size"), color = GlassColors.TextSecondary)
                 Slider(
                     value = selected.size,
                     onValueChange = { v -> viewModel.update(landscape, selected.id) { it.copy(size = v) } },
                     valueRange = 0.06f..0.5f,
                 )
-                Text("ความทึบ", color = GlassColors.TextSecondary)
+                Text(tr("ความทึบ", "Opacity"), color = GlassColors.TextSecondary)
                 Slider(
                     value = selected.alpha,
                     onValueChange = { v -> viewModel.update(landscape, selected.id) { it.copy(alpha = v) } },
                     valueRange = 0.1f..1f,
                 )
-                GlassButton("เสร็จ", { selectedId = null }, modifier = Modifier.align(Alignment.End))
+                GlassButton(tr("เสร็จ", "Done"), { selectedId = null }, modifier = Modifier.align(Alignment.End))
             }
         }
     }

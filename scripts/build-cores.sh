@@ -28,10 +28,9 @@ ABIS=(arm64-v8a armeabi-v7a)
 CORES=(
   "ppsspp|https://github.com/hrydgard/ppsspp.git|master"
   "pcsx_rearmed|https://github.com/libretro/pcsx_rearmed.git|master"
-  "play|https://github.com/jpd002/Play-.git|master"
   "gambatte|https://github.com/libretro/gambatte-libretro.git|master"
   "fceumm|https://github.com/libretro/libretro-fceumm.git|master"
-  "melondsds|https://github.com/JesseTG/melonds-ds.git|main"
+  "mgba|https://github.com/libretro/mgba.git|master"
 )
 
 want="${1:-all}"
@@ -45,7 +44,7 @@ build_ndk_build() { # สำหรับ core ที่มีโฟลเดอ�
   done
 }
 
-build_cmake() { # สำหรับ core ที่ใช้ CMake (PPSSPP, Play!, melonDS DS)
+build_cmake() { # สำหรับ core ที่ใช้ CMake (PPSSPP)
   local dir="$1" core="$2" extra="$3"
   for abi in "${ABIS[@]}"; do
     local b="$dir/build-$abi"
@@ -76,8 +75,7 @@ for entry in "${CORES[@]}"; do
 
   case "$core" in
     ppsspp)    build_cmake "$dir" ppsspp "-DLIBRETRO=ON" ;;
-    play)      build_cmake "$dir" play "-DBUILD_LIBRETRO_CORE=ON -DBUILD_PLAY=OFF -DBUILD_TESTS=OFF" ;;
-    melondsds) build_cmake "$dir" melondsds "" ;;
+    mgba)      build_ndk_build "$dir/libretro-build" "$core" ;; # mGBA: โฟลเดอร์ jni อยู่ใน libretro-build/
     *)         build_ndk_build "$dir" "$core" ;;
   esac
 done

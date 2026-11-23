@@ -16,7 +16,9 @@
  */
 package com.allemulator.feature.player
 
+import com.allemulator.core.emulation.tr
 import android.app.Application
+import android.os.ParcelFileDescriptor
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -77,18 +79,19 @@ class PlayerViewModel @Inject constructor(
 
     private suspend fun prepare(): PlayerState = withContext(Dispatchers.IO) {
         runCatching {
-            val game = games.game(gameUri) ?: return@withContext PlayerState.Error("ไม่พบเกมนี้ในรายการแล้ว")
-            val system = GameSystem.fromId(game.systemId) ?: return@withContext PlayerState.Error("ไม่รู้จักเครื่องเกม ${game.systemId}")
+            val game = games.game(gameUri) ?: return@withContext PlayerState.Error(tr("ไม่พบเกมนี้ในรายการแล้ว", "This game is no longer in your library"))
+            val system = GameSystem.fromId(game.systemId) ?: return@withContext PlayerState.Error(tr("ไม่รู้จักเครื่องเกม ${game.systemId}", "Unknown console ${game.systemId}"))
 
             val systemDir = File(app.filesDir, "system").apply { mkdirs() }
             val savesDir = File(app.filesDir, "saves/${system.id}").apply { mkdirs() }
             SystemAssets.ensureInstalled(app, systemDir)
 
+            val resolved = GameFileResolver(app).resolve(game, system, forceCopy)
             games.markPlayed(game.uri)
             PlayerState.Ready(
                 game = game,
                 system = system,
-                resolved = GameFileResolver(app).resolve(game, system, forceCopy),
+                resolved = resolved,
                 performance = settings.performance(system).first(),
                 overlay = settings.overlay(system).first(),
                 layout = settings.layout(system).first(),
@@ -97,7 +100,7 @@ class PlayerViewModel @Inject constructor(
                 systemDir = systemDir,
                 savesDir = savesDir,
             )
-        }.getOrElse { PlayerState.Error("เปิดเกมไม่ได้: ${it.message}") }
+        }.getOrElse { PlayerState.Error(tr("เปิดเกมไม่ได้: ${it.message}", "Can't open game: ${it.message}")) }
     }
 
     // ---------------- ไฟล์เซฟ ----------------
@@ -119,6 +122,21 @@ class PlayerViewModel @Inject constructor(
         val ready = _state.value as? PlayerState.Ready ?: return@withContext
         if (bytes.isNotEmpty()) sramFile(ready.system, ready.game).writeBytes(bytes)
     }
+
+    // ---------------- ตั้งค่าระหว่างเล่น (จากเมนูหยุดเกม) ----------------
+    // บันทึกเป็นค่าตั้งค่าของเครื่องนี้เลย → เปิดเกมครั้งหน้าก็ใช้ค่าใหม่
+
+    fun savePerformance(value: PerformanceSettings) = ready()?.let { r ->
+        viewModelScope.launch { settings.setPerformance(r.system, value) }
+    }
+
+    fun saveOverlay(value: OverlaySettings) = ready()?.let { r ->
+        viewModelScope.launch { settings.setOverlay(r.system, value) }
+    }
+
+    fun saveHaptics(on: Boolean) = viewModelScope.launch { settings.setHaptics(on) }
+
+    private fun ready() = _state.value as? PlayerState.Ready
 
     override fun onCleared() {
         (_state.value as? PlayerState.Ready)?.resolved?.close()

@@ -5,7 +5,7 @@
  *
  *   onCreate  → โชว์ splash, เริ่มระบบโฆษณา + ระบบซื้อ, วาด UI (AppNavHost)
  *   onResume  → "จังหวะพัก" (เพิ่งเปิดแอพ หรือเพิ่งออกจากเกม)
- *               → ให้ AdManager ตัดสินใจว่าครบ 3 ชม. หรือยัง ถ้าครบก็โชว์โฆษณา
+ *               → ให้ AdManager ตัดสินใจว่าครบ 1 ชม. หรือยัง ถ้าครบก็โชว์โฆษณา
  * -----------------------------------------------------------------------------
  */
 package com.allemulator.app
@@ -48,8 +48,15 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /** true = ยังไม่เคยถึงจังหวะเปิดแอพ (resume ครั้งแรก) */
+    private var firstResume = true
+
     override fun onResume() {
         super.onResume()
-        adManager.maybeShowAd(this)
+        // โชว์โฆษณาเฉพาะ "จังหวะพัก" จริงๆ: ตอนเปิดแอพ หรือเพิ่งออกจากเกม
+        // ไม่โชว์ตอนกลับมาจากหน้าต่างเลือกไฟล์/โฟลเดอร์ของระบบ (จะรบกวนผู้ใช้)
+        val returnedFromGame = com.allemulator.feature.player.GameActivity.consumeExitedFlag()
+        if (firstResume || returnedFromGame) adManager.maybeShowAd(this)
+        firstResume = false
     }
 }

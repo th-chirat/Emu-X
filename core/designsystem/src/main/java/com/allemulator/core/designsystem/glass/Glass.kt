@@ -63,8 +63,11 @@ fun Modifier.glass(
                     ),
                 )
             } else {
-                // ไม่มีต้นทางให้เบลอ (เช่นในหน้าเล่นเกม) → ใช้สีทึบโปร่ง
-                Modifier.background(GlassColors.GlassFallback)
+                // ไม่มีต้นทางให้เบลอ (เช่นปุ่มบนจอเกม) → กระจกใสอมขาว + เงามืดบางๆ ให้ตัวหนังสืออ่านออก
+                // (เดิมใช้สีทึบเข้ม ดูเป็นกล่องดำ — บรีฟรอบ 3 ข้อ 2)
+                Modifier
+                    .background(Color.Black.copy(alpha = 0.22f))
+                    .background(fill)
             },
         )
         .background(

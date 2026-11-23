@@ -2,12 +2,15 @@
  * PlayerOverlays.kt
  * -----------------------------------------------------------------------------
  * ส่วนที่ลอยทับจอเกม:
- *   PerfOverlay — กล่องเล็กโชว์ FPS / CPU / GPU / RAM / อุณหภูมิ (เลือกเปิดได้ทีละอย่าง)
- *   PauseMenu   — เมนูหยุดเกม: เล่นต่อ, เซฟ/โหลด 4 ช่อง, เร่งความเร็ว, ซ่อนจอย, รีเซ็ต, ออก
+ *   PerfOverlay — กล่องเล็กโชว์ FPS / CPU / RAM / อุณหภูมิ (เลือกเปิดได้ทีละอย่าง)
+ *   PauseMenu   — เมนูหยุดเกม: เล่นต่อ, เซฟ/โหลด 4 ช่อง, เร่งความเร็ว, ตั้งค่า, รีเซ็ต, ออก
+ *                 (ไม่มีปุ่มซ่อนจอยแล้ว — ต่อจอยจริงเมื่อไหร่ จอยบนจอซ่อนเองอัตโนมัติ)
  * -----------------------------------------------------------------------------
  */
 package com.allemulator.feature.player
 
+import android.graphics.Bitmap
+import com.allemulator.core.emulation.tr
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,9 +27,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ExitToApp
 import androidx.compose.material.icons.rounded.FastForward
-import androidx.compose.material.icons.rounded.Gamepad
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,6 +45,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.allemulator.core.designsystem.glass.GlassButton
+import com.allemulator.core.designsystem.glass.SnapshotGlass
 import com.allemulator.core.designsystem.glass.glass
 import com.allemulator.core.designsystem.theme.GlassColors
 import com.allemulator.core.emulation.OverlayCorner
@@ -57,7 +61,6 @@ fun PerfOverlay(p: PerfSnapshot, settings: OverlaySettings, modifier: Modifier =
     val lines = buildList {
         if (settings.showFps) add("FPS  ${p.fps}")
         if (settings.showCpu) add("CPU  ${p.cpuPercent?.let { "$it%" } ?: "…"}")
-        if (settings.showGpu) add("GPU  ${p.gpuPercent?.let { "$it%" } ?: "N/A"}  (%.1f ms)".format(p.frameTimeMs))
         if (settings.showRam) add("RAM  ${p.ramMb?.let { "$it MB" } ?: "…"}")
         if (settings.showBatteryTemp) add("TEMP ${p.batteryTempC?.let { "%.1f°C".format(it) } ?: "…"}")
     }
@@ -97,29 +100,27 @@ fun PerfOverlay(p: PerfSnapshot, settings: OverlaySettings, modifier: Modifier =
 @Composable
 fun PauseMenu(
     title: String,
+    snapshot: Bitmap?,
     fastForward: Boolean,
-    showPad: Boolean,
     slotInfo: (Int) -> Long?,
     onResume: () -> Unit,
     onSave: (Int) -> Unit,
     onLoad: (Int) -> Unit,
     onToggleFastForward: () -> Unit,
-    onTogglePad: () -> Unit,
     onReset: () -> Unit,
     onExit: () -> Unit,
+    settingsContent: @Composable () -> Unit,
 ) {
     // โหมดเลือกช่องเซฟ: null = เมนูหลัก, true = กำลังเซฟ, false = กำลังโหลด
     var slotMode by remember { mutableStateOf<Boolean?>(null) }
+    // true = กำลังเปิดหน้า "ตั้งค่าระหว่างเล่น"
+    var settingsOpen by remember { mutableStateOf(false) }
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.55f))
-            .clickable(onClick = onResume),
-        contentAlignment = Alignment.Center,
-    ) {
+    // พื้นหลัง = ภาพเกมตอนกดหยุดแบบเบลอ → เมนูเป็นกระจกฝ้าโปร่ง (liquid glass) ไม่ใช่กล่องดำ
+    SnapshotGlass(snapshot, Modifier.fillMaxSize().clickable(onClick = onResume)) {
         Column(
             Modifier
+                .align(Alignment.Center)
                 .widthIn(max = 420.dp)
                 .padding(24.dp)
                 .glass(RoundedCornerShape(28.dp))
@@ -130,30 +131,33 @@ fun PauseMenu(
         ) {
             Text(title, style = MaterialTheme.typography.titleLarge, color = Color.White, maxLines = 2, overflow = TextOverflow.Ellipsis)
 
-            when (val mode = slotMode) {
+            if (settingsOpen) {
+                settingsContent()
+                GlassButton(tr("ย้อนกลับ", "Back"), { settingsOpen = false }, Modifier.fillMaxWidth())
+            } else when (val mode = slotMode) {
                 null -> {
-                    GlassButton("เล่นต่อ", onResume, Modifier.fillMaxWidth(), icon = Icons.Rounded.PlayArrow, tint = GlassColors.Accent)
+                    GlassButton(tr("เล่นต่อ", "Continue"), onResume, Modifier.fillMaxWidth(), icon = Icons.Rounded.PlayArrow, tint = GlassColors.Accent)
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        GlassButton("เซฟเกม", { slotMode = true }, Modifier.weight(1f))
-                        GlassButton("โหลดเซฟ", { slotMode = false }, Modifier.weight(1f))
+                        GlassButton(tr("เซฟเกม", "Save"), { slotMode = true }, Modifier.weight(1f))
+                        GlassButton(tr("โหลดเซฟ", "Load"), { slotMode = false }, Modifier.weight(1f))
                     }
-                    GlassButton(if (fastForward) "ความเร็วปกติ" else "เร่งความเร็ว x2", onToggleFastForward, Modifier.fillMaxWidth(), icon = Icons.Rounded.FastForward)
-                    GlassButton(if (showPad) "ซ่อนจอยบนจอ" else "แสดงจอยบนจอ", onTogglePad, Modifier.fillMaxWidth(), icon = Icons.Rounded.Gamepad)
-                    GlassButton("เริ่มเกมใหม่", onReset, Modifier.fillMaxWidth(), icon = Icons.Rounded.RestartAlt)
-                    GlassButton("ออกจากเกม", onExit, Modifier.fillMaxWidth(), icon = Icons.AutoMirrored.Rounded.ExitToApp, tint = GlassColors.Danger)
+                    GlassButton(if (fastForward) tr("ความเร็วปกติ", "Normal speed") else tr("เร่งความเร็ว x2", "Fast forward x2"), onToggleFastForward, Modifier.fillMaxWidth(), icon = Icons.Rounded.FastForward)
+                    GlassButton(tr("ตั้งค่า", "Settings"), { settingsOpen = true }, Modifier.fillMaxWidth(), icon = Icons.Rounded.Settings)
+                    GlassButton(tr("เริ่มเกมใหม่", "Restart game"), onReset, Modifier.fillMaxWidth(), icon = Icons.Rounded.RestartAlt)
+                    GlassButton(tr("ออกจากเกม", "Exit game"), onExit, Modifier.fillMaxWidth(), icon = Icons.AutoMirrored.Rounded.ExitToApp, tint = GlassColors.Danger)
                 }
                 else -> {
-                    Text(if (mode) "เลือกช่องที่จะเซฟ" else "เลือกช่องที่จะโหลด", color = GlassColors.TextSecondary)
+                    Text(if (mode) tr("เลือกช่องที่จะเซฟ", "Choose a slot to save") else tr("เลือกช่องที่จะโหลด", "Choose a slot to load"), color = GlassColors.TextSecondary)
                     (1..4).forEach { slot ->
                         val time = slotInfo(slot)
-                        val label = "ช่อง $slot  —  " + (time?.let { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(it)) } ?: "ว่าง")
+                        val label = tr("ช่อง $slot  —  ", "Slot $slot  —  ") + (time?.let { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(it)) } ?: tr("ว่าง", "Empty"))
                         GlassButton(
                             label,
                             onClick = { if (mode) onSave(slot) else if (time != null) onLoad(slot) },
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }
-                    GlassButton("ย้อนกลับ", { slotMode = null }, Modifier.fillMaxWidth())
+                    GlassButton(tr("ย้อนกลับ", "Back"), { slotMode = null }, Modifier.fillMaxWidth())
                 }
             }
         }

@@ -14,6 +14,7 @@
  */
 package com.allemulator.feature.home
 
+import com.allemulator.core.emulation.tr
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,9 +50,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.allemulator.core.data.db.GameEntity
-import com.allemulator.core.designsystem.glass.BetaBadge
 import com.allemulator.core.designsystem.glass.GlassCard
 import com.allemulator.core.designsystem.glass.GlassIconButton
+import com.allemulator.core.designsystem.glass.LanguageSwitch
+import com.allemulator.core.emulation.L10n
 import com.allemulator.core.designsystem.glass.GlassScaffold
 import com.allemulator.core.designsystem.glass.GlassTopBar
 import com.allemulator.core.designsystem.icons.ConsoleIcon
@@ -76,13 +78,17 @@ fun HomeScreen(
         Column(Modifier.fillMaxSize()) {
             GlassTopBar(
                 title = "ALL Emulator",
-                subtitle = "เลือกเครื่องเกมที่อยากเล่น",
-                actions = { GlassIconButton(Icons.Rounded.Settings, "ตั้งค่า", onOpenSettings) },
+                subtitle = tr("เลือกเครื่องเกมที่อยากเล่น", "Pick a console to play"),
+                actions = {
+                    // สวิตช์ภาษา TH / EN (บรีฟรอบ 2 ข้อ 4)
+                    LanguageSwitch(isThai = L10n.isThai, onToggle = viewModel::setThai)
+                    GlassIconButton(Icons.Rounded.Settings, tr("ตั้งค่า", "Settings"), onOpenSettings)
+                },
             )
 
             LazyVerticalGrid(
-                // การ์ดกว้างอย่างน้อย 160dp → มือถือได้ 2 คอลัมน์, แท็บเล็ตได้ 4-5 คอลัมน์
-                columns = GridCells.Adaptive(minSize = 160.dp),
+                // การ์ดกว้างอย่างน้อย 140dp → มือถือได้ 2 คอลัมน์ (แม้จอแคบ ~340dp หรือตั้งตัวหนังสือ/การแสดงผลใหญ่), แท็บเล็ตได้ 4-5 คอลัมน์
+                columns = GridCells.Adaptive(minSize = 140.dp),
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -111,12 +117,11 @@ private fun SystemCard(card: SystemCardUi, onClick: () -> Unit) {
         modifier = Modifier.fillMaxWidth().aspectRatio(0.86f),
     ) {
         Box(Modifier.fillMaxSize().padding(16.dp)) {
-            if (system.isBeta) BetaBadge(Modifier.align(Alignment.TopEnd))
-            ConsoleIcon(system, Modifier.size(104.dp).align(Alignment.Center).padding(bottom = 24.dp))
+            ConsoleIcon(system, Modifier.size(96.dp).align(Alignment.Center).padding(bottom = 24.dp))
             Column(Modifier.align(Alignment.BottomStart)) {
                 Text(system.displayName, style = MaterialTheme.typography.titleLarge, color = Color.White)
                 Text(
-                    if (card.gameCount == 0) "ยังไม่มีเกม" else "${card.gameCount} เกม",
+                    if (card.gameCount == 0) tr("ยังไม่มีเกม", "No games yet") else tr("${card.gameCount} เกม", if (card.gameCount == 1) "1 game" else "${card.gameCount} games"),
                     style = MaterialTheme.typography.bodyMedium,
                     color = GlassColors.TextSecondary,
                 )
@@ -130,7 +135,7 @@ private fun SystemCard(card: SystemCardUi, onClick: () -> Unit) {
 private fun RecentRow(games: List<GameEntity>, onPlay: (GameEntity) -> Unit) {
     Column {
         Text(
-            "เล่นต่อ",
+            tr("เล่นต่อ", "Continue"),
             style = MaterialTheme.typography.titleMedium,
             color = Color.White,
             modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),

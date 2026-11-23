@@ -6,8 +6,7 @@
  * ชื่อ key และค่าทั้งหมดตรวจจาก source code ของแต่ละ core แล้ว:
  *   PPSSPP       → ppsspp/libretro/libretro_core_options.h
  *   PCSX-ReARMed → pcsx_rearmed/frontend/libretro_core_options.h
- *   Play!        → Play-/Source/ui_libretro/main_libretro.cpp
- *   melonDS DS   → melonds-ds/src/libretro/config/constants.hpp
+ *   mGBA         → mgba/src/platform/libretro/libretro_core_options.h
  * ถ้า core อัปเดตแล้วเปลี่ยนชื่อ key ต้องมาแก้ที่ไฟล์นี้
  * -----------------------------------------------------------------------------
  */
@@ -20,12 +19,7 @@ object CoreOptions {
      * ค่าที่ core ไม่รู้จักจะถูก core เพิกเฉยเอง จึงไม่ทำให้เกมพัง
      */
     fun build(system: GameSystem, s: PerformanceSettings): Map<String, String> {
-        // ความละเอียด: ถ้าผู้ใช้ไม่ได้กำหนดเอง ให้ใช้ค่าจาก preset
-        val scale = (s.resolutionScale ?: when (s.preset) {
-            PerformancePreset.BATTERY -> 1
-            PerformancePreset.BALANCED -> 2
-            PerformancePreset.PERFORMANCE -> 3
-        }).coerceIn(1, 4)
+        val scale = scaleOf(s)
         val autoSkip = s.frameSkip == -1 || (s.frameSkip == 0 && s.preset == PerformancePreset.BATTERY)
 
         return when (system) {
@@ -37,6 +31,9 @@ object CoreOptions {
                 put("ppsspp_frameskip", if (s.frameSkip > 0) s.frameSkip.toString() else "disabled")
                 put("ppsspp_texture_scaling_level", "disabled") // กิน GPU มาก ปิดไว้
                 put("ppsspp_skip_buffer_effects", if (s.preset == PerformancePreset.BATTERY) "enabled" else "disabled")
+                // ทางลัดเร่งความเร็ว: ไม่อ่านภาพกลับจาก GPU + ลดความละเอียดของ effect (ช่วยมากบนมือถือ)
+                put("ppsspp_skip_gpu_readbacks", if (s.speedHacks) "enabled" else "disabled")
+                put("ppsspp_lower_resolution_for_effects", if (s.speedHacks) "Aggressive" else "disabled")
             }
 
             GameSystem.PS1 -> buildMap {
@@ -55,24 +52,24 @@ object CoreOptions {
                 put("pcsx_rearmed_neon_enhancement_enable", if (scale >= 2) "enabled" else "disabled")
             }
 
-            GameSystem.PS2 -> buildMap {
-                // Play! รองรับ 1x|2x|4x|8x — PS2 หนักมาก จึงจำกัดไม่เกิน 2x บนมือถือ
-                put("play_res_multi", if (scale >= 3) "2x" else "1x")
-                put("play_presentation_mode", "Fit Screen")
-            }
-
-            GameSystem.NDS -> buildMap {
-                put("melonds_jit_enable", "enabled")
-                put("melonds_threaded_renderer", if (s.threadedRender) "enabled" else "disabled")
-                // OpenGL renderer ทำให้ภาพชัดกว่า แต่ใช้ GPU มากกว่า
-                put("melonds_render_mode", if (scale >= 2) "opengl" else "software")
-                put("melonds_opengl_resolution", scale.toString())
+            // GBA: mGBA เบาอยู่แล้ว — โหมดประหยัดแบตให้ข้ามเฟรมเมื่อเครื่องช้า
+            // (key จาก mgba/src/platform/libretro/libretro_core_options.h)
+            GameSystem.GBA -> buildMap {
+                put("mgba_frameskip", if (autoSkip) "auto" else "disabled")
+                put("mgba_skip_bios", "ON") // ข้ามโลโก้ตอนเปิดเครื่อง (ใช้ได้เมื่อมี BIOS จริง)
             }
 
             // GB / GBC / NES เบามาก ไม่ต้องปรับอะไร
             GameSystem.GB, GameSystem.GBC, GameSystem.NES -> emptyMap()
         }
     }
+
+    /** ตัวคูณความละเอียดที่ใช้จริง: ถ้าผู้ใช้ไม่ได้กำหนดเอง ใช้ค่าจาก preset */
+    fun scaleOf(s: PerformanceSettings): Int = (s.resolutionScale ?: when (s.preset) {
+        PerformancePreset.BATTERY -> 1
+        PerformancePreset.BALANCED -> 2
+        PerformancePreset.PERFORMANCE -> 3
+    }).coerceIn(1, 4)
 
     private fun pspResolution(scale: Int) = when (scale) {
         1 -> "480x272"

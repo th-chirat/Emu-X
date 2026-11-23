@@ -14,6 +14,14 @@
  */
 package com.allemulator.app
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.allemulator.feature.home.TutorialOverlay
+import com.allemulator.feature.home.TutorialViewModel
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -45,7 +53,10 @@ fun AppNavHost(
     sourceUrl: String,
 ) {
     val nav = rememberNavController()
+    val tutorial: TutorialViewModel = hiltViewModel()
+    val showTutorial by tutorial.show.collectAsStateWithLifecycle()
 
+    Box(Modifier.fillMaxSize()) {
     NavHost(
         navController = nav,
         startDestination = HomeRoute,
@@ -86,5 +97,8 @@ fun AppNavHost(
                 sourceUrl = sourceUrl,
             )
         }
+    }
+        // หน้าสอนใช้งานครั้งแรก (ข้ามได้) — วางทับทุกหน้า
+        if (showTutorial == true) TutorialOverlay(onDone = { tutorial.finish() })
     }
 }

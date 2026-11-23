@@ -1,16 +1,16 @@
 /*
  * AdManager.kt
  * -----------------------------------------------------------------------------
- * โฆษณา (บรีฟข้อ 2): แสดงโฆษณาเต็มจอ (interstitial) "ไม่เกิน 1 ครั้งทุก 3 ชั่วโมง"
+ * โฆษณา (บรีฟข้อ 2): แสดงโฆษณาเต็มจอ (interstitial) "ไม่เกิน 1 ครั้งทุก 1 ชั่วโมง"
  *
  * กติกา:
  *   1) ผู้ใช้ที่ซื้อ "ลบโฆษณาตลอดชีพ" → ไม่โชว์เลย
  *   2) โชว์เฉพาะ "จังหวะพัก" — ตอนเปิดแอพ / กลับจากเกม (MainActivity.onResume)
  *      ไม่โชว์ระหว่างเล่นเกม (นโยบาย Google Play ห้ามโฆษณาโผล่แบบไม่คาดคิดกลางการใช้งาน)
- *   3) 3 ชั่วโมงแรกหลังติดตั้งไม่โชว์ ให้ผู้ใช้ใหม่ได้ลองแอพก่อน
+ *   3) 1 ชั่วโมงแรกหลังติดตั้งไม่โชว์ ให้ผู้ใช้ใหม่ได้ลองแอพก่อน
  *   4) ต้องขอความยินยอม (UMP consent) ก่อน — กฎหมาย GDPR ของยุโรปบังคับ
  *
- * ช่วงห่าง 3 ชม. ปรับได้ที่ AD_INTERVAL_MS (แอพ debug ใช้ 2 นาทีเพื่อให้เทสง่าย)
+ * ช่วงห่าง 1 ชม. ปรับได้ที่ AD_INTERVAL_MS (debug และ release ใช้ค่าเดียวกัน)
  * รหัสโฆษณาตั้งใน app/build.gradle.kts (ตอนนี้เป็นรหัสทดสอบของ Google)
  * -----------------------------------------------------------------------------
  */
@@ -18,7 +18,6 @@ package com.allemulator.monetization
 
 import android.app.Activity
 import android.content.Context
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.util.Log
 import com.allemulator.core.data.SettingsRepository
@@ -51,10 +50,9 @@ class AdManager @Inject constructor(
     private var interstitial: InterstitialAd? = null
     private var loading = false
 
-    private val isDebug = context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
 
-    /** ระยะห่างขั้นต่ำระหว่างโฆษณา: release = 3 ชั่วโมง, debug = 2 นาที */
-    private val adIntervalMs = if (isDebug) 2 * 60_000L else AD_INTERVAL_MS
+    /** ระยะห่างขั้นต่ำระหว่างโฆษณา = 1 ชั่วโมง (ทั้ง debug และ release) */
+    private val adIntervalMs = AD_INTERVAL_MS
 
     /** รหัสโฆษณา interstitial (อ่านจาก meta-data ใน AndroidManifest ของแอพ) */
     private val interstitialId: String by lazy {
@@ -123,7 +121,7 @@ class AdManager @Inject constructor(
         scope.launch {
             if (settings.isPremium.first()) return@launch
             val now = System.currentTimeMillis()
-            // ถ้ายังไม่เคยโชว์ ให้นับจากเวลาติดตั้ง (= 3 ชม.แรกไม่มีโฆษณา)
+            // ถ้ายังไม่เคยโชว์ ให้นับจากเวลาติดตั้ง (= 1 ชม.แรกไม่มีโฆษณา)
             val last = settings.lastAdShownAt().takeIf { it > 0 } ?: settings.firstLaunchAt()
             if (now - last < adIntervalMs) return@launch
 
@@ -146,7 +144,7 @@ class AdManager @Inject constructor(
 
     companion object {
         private const val TAG = "AdManager"
-        const val AD_INTERVAL_MS = 3 * 60 * 60 * 1000L // 3 ชั่วโมง
+        const val AD_INTERVAL_MS = 60 * 60 * 1000L // 1 ชั่วโมง
         const val META_INTERSTITIAL_ID = "com.allemulator.ADMOB_INTERSTITIAL_ID"
 
         /** รหัสทดสอบของ Google — ปลอดภัย ใช้ตอนพัฒนา (โฆษณาจริงห้ามกดเองเด็ดขาด บัญชีจะโดนแบน) */

@@ -15,8 +15,10 @@
  */
 package com.allemulator.feature.library
 
+import com.allemulator.core.emulation.tr
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -71,6 +73,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.allemulator.core.data.db.GameEntity
 import com.allemulator.core.designsystem.glass.GlassButton
+import com.allemulator.core.designsystem.glass.CoverImage
 import com.allemulator.core.designsystem.glass.GlassFab
 import com.allemulator.core.designsystem.glass.GlassIconButton
 import com.allemulator.core.designsystem.glass.GlassScaffold
@@ -92,10 +95,24 @@ fun LibraryScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val system = viewModel.system
     var showFolders by remember { mutableStateOf(false) }
+    var showAddChoice by remember { mutableStateOf(false) }
+    val coverVersion by viewModel.coverVersion.collectAsStateWithLifecycle()
+
+    // หน้าต่างเลือกรูปของระบบ (Photo Picker — ไม่ต้องขอสิทธิ์อ่านรูปทั้งเครื่อง) ใช้ใส่ปกเกม
+    var coverTarget by remember { mutableStateOf<GameEntity?>(null) }
+    val pickCover = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
+        val game = coverTarget
+        if (uri != null && game != null) viewModel.setCover(game, uri)
+        coverTarget = null
+    }
 
     // หน้าต่างเลือกโฟลเดอร์ของระบบ Android (SAF)
     val pickFolder = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri: Uri? ->
         if (uri != null) viewModel.onFolderPicked(uri)
+    }
+    // หน้าต่างเลือก "ไฟล์" (เลือกได้หลายไฟล์) — รองรับ .zip ที่จะถูกแตกไฟล์ให้อัตโนมัติ
+    val pickFiles = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris: List<Uri> ->
+        if (uris.isNotEmpty()) viewModel.onFilesPicked(uris)
     }
 
     // ข้อความแจ้งเตือนหายเองใน 3 วินาที
@@ -107,27 +124,30 @@ fun LibraryScreen(
         Column(Modifier.fillMaxSize()) {
             GlassTopBar(
                 title = system.displayName,
-                subtitle = "${system.fullName} • ${state.totalCount} เกม",
-                navigation = { GlassIconButton(Icons.AutoMirrored.Rounded.ArrowBack, "กลับ", onBack) },
+                subtitle = tr("${system.fullName} • ${state.totalCount} เกม", "${system.fullName} • ${state.totalCount} " + if (state.totalCount == 1) "game" else "games"),
+                navigation = { GlassIconButton(Icons.AutoMirrored.Rounded.ArrowBack, tr("กลับ", "Back"), onBack) },
                 actions = {
-                    GlassIconButton(Icons.Rounded.Refresh, "สแกนใหม่", viewModel::rescan)
-                    GlassIconButton(Icons.Rounded.Folder, "โฟลเดอร์", { showFolders = true })
-                    GlassIconButton(Icons.Rounded.Settings, "ตั้งค่า ${system.displayName}", { onOpenSystemSettings(system) })
+                    GlassIconButton(Icons.Rounded.Refresh, tr("สแกนใหม่", "Rescan"), viewModel::rescan)
+                    GlassIconButton(Icons.Rounded.Folder, tr("โฟลเดอร์", "Folders"), { showFolders = true })
+                    GlassIconButton(Icons.Rounded.Settings, tr("ตั้งค่า ${system.displayName}", "${system.displayName} settings"), { onOpenSystemSettings(system) })
                 },
             )
             if (state.isScanning) {
                 LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp))
             }
-            if (system.isBeta) BetaWarning(Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
 
             when {
                 !state.loaded -> Unit
-                state.totalCount == 0 -> EmptyState(system, onAdd = { pickFolder.launch(null) })
+                state.totalCount == 0 -> EmptyState(
+                    system,
+                    onAddFolder = { pickFolder.launch(null) },
+                    onAddFiles = { pickFiles.launch(arrayOf("*/*")) },
+                )
                 else -> {
                     GlassSearchField(
                         value = state.query,
                         onValueChange = viewModel::onQueryChange,
-                        placeholder = "ค้นหาเกม...",
+                        placeholder = tr("ค้นหาเกม...", "Search games..."),
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     )
                     LazyColumn(
@@ -139,9 +159,16 @@ fun LibraryScreen(
                             GameRow(
                                 game = game,
                                 system = system,
+                                cover = viewModel.coverFile(game),
+                                coverVersion = coverVersion,
                                 onPlay = { onPlay(game) },
                                 onToggleFavorite = { viewModel.toggleFavorite(game) },
                                 onHide = { viewModel.hide(game) },
+                                onChangeCover = {
+                                    coverTarget = game
+                                    pickCover.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                                },
+                                onRemoveCover = { viewModel.removeCover(game) },
                             )
                         }
                     }
@@ -149,11 +176,11 @@ fun LibraryScreen(
             }
         }
 
-        // ปุ่ม + (บรีฟข้อ 1.2) — โชว์เสมอ กดเพื่อเลือกโฟลเดอร์เกม (เพิ่มได้หลายโฟลเดอร์)
+        // ปุ่ม + (บรีฟข้อ 1.2) — โชว์เสมอ กดแล้วเลือกได้ว่าจะเพิ่ม "โฟลเดอร์" หรือ "ไฟล์/zip"
         GlassFab(
             Icons.Rounded.Add,
-            "เพิ่มโฟลเดอร์เกม",
-            onClick = { pickFolder.launch(null) },
+            tr("เพิ่มเกม", "Add games"),
+            onClick = { showAddChoice = true },
             modifier = Modifier.align(Alignment.BottomEnd).navigationBarsPadding().padding(24.dp),
         )
 
@@ -171,6 +198,29 @@ fun LibraryScreen(
         }
     }
 
+    if (showAddChoice) {
+        AlertDialog(
+            onDismissRequest = { showAddChoice = false },
+            title = { Text(tr("เพิ่มเกม ${system.displayName}", "Add ${system.displayName} games")) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    GlassButton(
+                        tr("เลือกโฟลเดอร์เกม", "Choose game folder"),
+                        { showAddChoice = false; pickFolder.launch(null) },
+                        icon = Icons.Rounded.CreateNewFolder, tint = Color(system.accentStart),
+                    )
+                    GlassButton(
+                        tr("เลือกไฟล์เกม / .zip", "Choose game file / .zip"),
+                        { showAddChoice = false; pickFiles.launch(arrayOf("*/*")) },
+                        icon = Icons.Rounded.Add, tint = Color(system.accentStart),
+                    )
+                    Text(tr("ไฟล์ .zip จะถูกแตกไฟล์ให้อัตโนมัติ", ".zip files are extracted automatically"), style = MaterialTheme.typography.bodySmall)
+                }
+            },
+            confirmButton = { TextButton(onClick = { showAddChoice = false }) { Text(tr("ยกเลิก", "Cancel")) } },
+        )
+    }
+
     if (showFolders) {
         FoldersDialog(
             folders = state.folders.map { it.treeUri },
@@ -183,7 +233,7 @@ fun LibraryScreen(
 
 /** หน้าว่าง (ยังไม่มีเกม): ไอคอนใหญ่ + คำอธิบาย + ปุ่มเลือกโฟลเดอร์ */
 @Composable
-private fun EmptyState(system: GameSystem, onAdd: () -> Unit) {
+private fun EmptyState(system: GameSystem, onAddFolder: () -> Unit, onAddFiles: () -> Unit) {
     Column(
         Modifier.fillMaxSize().padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -191,10 +241,10 @@ private fun EmptyState(system: GameSystem, onAdd: () -> Unit) {
     ) {
         ConsoleIcon(system, Modifier.size(140.dp))
         Spacer(Modifier.height(24.dp))
-        Text("ยังไม่มีเกม ${system.displayName}", style = MaterialTheme.typography.titleLarge, color = Color.White)
+        Text(tr("ยังไม่มีเกม ${system.displayName}", "No ${system.displayName} games yet"), style = MaterialTheme.typography.titleLarge, color = Color.White)
         Spacer(Modifier.height(8.dp))
         Text(
-            "กดปุ่มด้านล่างแล้วเลือกโฟลเดอร์ที่คุณเก็บไฟล์เกมไว้\nรองรับ: " +
+            tr("เลือกโฟลเดอร์ที่เก็บเกม หรือเลือกไฟล์เกม/.zip ทีละไฟล์\nรองรับ: ", "Choose the folder with your games, or pick game/.zip files\nSupported: ") +
                 system.extensions.joinToString(" ") { ".$it" },
             color = GlassColors.TextSecondary,
             textAlign = TextAlign.Center,
@@ -205,7 +255,9 @@ private fun EmptyState(system: GameSystem, onAdd: () -> Unit) {
             Text(it, color = GlassColors.TextSecondary, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyMedium)
         }
         Spacer(Modifier.height(24.dp))
-        GlassButton("เลือกโฟลเดอร์เกม", onAdd, icon = Icons.Rounded.CreateNewFolder, tint = Color(system.accentStart))
+        GlassButton(tr("เลือกโฟลเดอร์เกม", "Choose game folder"), onAddFolder, icon = Icons.Rounded.CreateNewFolder, tint = Color(system.accentStart))
+        Spacer(Modifier.height(12.dp))
+        GlassButton(tr("เลือกไฟล์เกม / .zip", "Choose game file / .zip"), onAddFiles, icon = Icons.Rounded.Add, tint = Color(system.accentStart))
     }
 }
 
@@ -215,9 +267,13 @@ private fun EmptyState(system: GameSystem, onAdd: () -> Unit) {
 private fun GameRow(
     game: GameEntity,
     system: GameSystem,
+    cover: java.io.File?,
+    coverVersion: Int,
     onPlay: () -> Unit,
     onToggleFavorite: () -> Unit,
     onHide: () -> Unit,
+    onChangeCover: () -> Unit,
+    onRemoveCover: () -> Unit,
 ) {
     var menu by remember { mutableStateOf(false) }
     Box {
@@ -229,7 +285,10 @@ private fun GameRow(
                 .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            ConsoleIcon(system, Modifier.size(40.dp))
+            // ปกเกมที่ผู้ใช้ใส่เอง (แนวตั้งแบบกล่องเกม) — ไม่มีปก = ไอคอนเครื่องเกม
+            CoverImage(cover, coverVersion, Modifier.size(width = 48.dp, height = 64.dp)) {
+                ConsoleIcon(system, Modifier.size(44.dp))
+            }
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(game.title, color = Color.White, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -241,38 +300,28 @@ private fun GameRow(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            if (game.favorite) Icon(Icons.Rounded.Star, "ติดดาว", tint = GlassColors.Beta)
+            if (game.favorite) Icon(Icons.Rounded.Star, tr("ติดดาว", "Favorite"), tint = GlassColors.Beta)
         }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
             DropdownMenuItem(
-                text = { Text(if (game.favorite) "เลิกติดดาว" else "ติดดาว") },
+                text = { Text(if (game.favorite) tr("เลิกติดดาว", "Unfavorite") else tr("ติดดาว", "Favorite")) },
                 onClick = { menu = false; onToggleFavorite() },
             )
             DropdownMenuItem(
-                text = { Text("เอาออกจากรายการ (ไม่ลบไฟล์)") },
+                text = { Text(tr("เปลี่ยนปกเกม", "Change cover")) },
+                onClick = { menu = false; onChangeCover() },
+            )
+            if (cover != null) {
+                DropdownMenuItem(
+                    text = { Text(tr("ลบปกเกม", "Remove cover")) },
+                    onClick = { menu = false; onRemoveCover() },
+                )
+            }
+            DropdownMenuItem(
+                text = { Text(tr("เอาออกจากรายการ (ไม่ลบไฟล์)", "Remove from list (keeps the file)")) },
                 onClick = { menu = false; onHide() },
             )
         }
-    }
-}
-
-/** แถบเตือน PS2 Beta */
-@Composable
-private fun BetaWarning(modifier: Modifier = Modifier) {
-    Row(
-        modifier
-            .fillMaxWidth()
-            .glass(RoundedCornerShape(16.dp), tint = GlassColors.Beta)
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(Icons.Rounded.WarningAmber, null, tint = GlassColors.Beta)
-        Spacer(Modifier.width(10.dp))
-        Text(
-            "PS2 ยังเป็นรุ่นทดลอง ต้องใช้มือถือสเปคสูง หลายเกมอาจช้าหรือเล่นไม่ได้",
-            color = Color.White,
-            style = MaterialTheme.typography.bodyMedium,
-        )
     }
 }
 
@@ -281,25 +330,25 @@ private fun BetaWarning(modifier: Modifier = Modifier) {
 private fun FoldersDialog(folders: List<String>, onRemove: (String) -> Unit, onAdd: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("โฟลเดอร์เกม") },
+        title = { Text(tr("โฟลเดอร์เกม", "Game folders")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (folders.isEmpty()) Text("ยังไม่ได้เลือกโฟลเดอร์")
+                if (folders.isEmpty()) Text(tr("ยังไม่ได้เลือกโฟลเดอร์", "No folders yet"))
                 folders.forEach { uri ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            Uri.decode(uri.substringAfterLast("/tree/")).replace("primary:", "ที่เก็บข้อมูลภายใน/"),
+                            Uri.decode(uri.substringAfterLast("/tree/")).replace("primary:", tr("ที่เก็บข้อมูลภายใน/", "Internal storage/")),
                             modifier = Modifier.weight(1f),
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        IconButton(onClick = { onRemove(uri) }) { Icon(Icons.Rounded.Close, "เอาโฟลเดอร์ออก") }
+                        IconButton(onClick = { onRemove(uri) }) { Icon(Icons.Rounded.Close, tr("เอาโฟลเดอร์ออก", "Remove folder")) }
                     }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onAdd) { Text("เพิ่มโฟลเดอร์") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("ปิด") } },
+        confirmButton = { TextButton(onClick = onAdd) { Text(tr("เพิ่มโฟลเดอร์", "Add folder")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("ปิด", "Close")) } },
     )
 }
 

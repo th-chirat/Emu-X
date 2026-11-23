@@ -12,6 +12,9 @@ package com.allemulator.feature.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.allemulator.core.data.GameRepository
+import com.allemulator.core.data.SettingsRepository
+import com.allemulator.core.emulation.AppLanguage
+import com.allemulator.core.emulation.L10n
 import com.allemulator.core.data.db.GameEntity
 import com.allemulator.core.emulation.GameSystem
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,6 +22,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /** ข้อมูลการ์ด 1 ใบ */
@@ -33,7 +37,15 @@ data class HomeUiState(
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     repository: GameRepository,
+    private val settings: SettingsRepository,
 ) : ViewModel() {
+
+    /** สวิตช์ภาษาในหน้าแรก: บันทึกค่า แล้ว AllEmulatorApp จะเปลี่ยนภาษาทั้งแอพทันที */
+    fun setThai(thai: Boolean) {
+        val lang = if (thai) AppLanguage.TH else AppLanguage.EN
+        L10n.set(lang) // เปลี่ยนทันที ไม่ต้องรอบันทึกเสร็จ
+        viewModelScope.launch { settings.setLanguage(lang) }
+    }
 
     val state: StateFlow<HomeUiState> =
         combine(repository.counts(), repository.recent(limit = 10)) { counts, recent ->

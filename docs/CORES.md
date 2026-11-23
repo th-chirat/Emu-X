@@ -4,10 +4,9 @@
 |---|---|---|---|
 | PSP | `libppsspp_libretro_android.so` | GPL-2.0+ | https://github.com/hrydgard/ppsspp |
 | PS1 | `libpcsx_rearmed_libretro_android.so` | GPL-2.0 | https://github.com/libretro/pcsx_rearmed |
-| PS2 (Beta) | `libplay_libretro_android.so` | BSD-2-Clause | https://github.com/jpd002/Play- |
 | GB / GBC | `libgambatte_libretro_android.so` | GPL-2.0 | https://github.com/libretro/gambatte-libretro |
 | NES | `libfceumm_libretro_android.so` | GPL-2.0 | https://github.com/libretro/libretro-fceumm |
-| NDS | `libmelondsds_libretro_android.so` | GPL-3.0 | https://github.com/JesseTG/melonds-ds |
+| GBA | `libmgba_libretro_android.so` | MPL-2.0 | https://github.com/libretro/mgba |
 | (frontend) | LibretroDroid 0.14.0 | GPL-3.0 | https://github.com/Swordfish90/LibretroDroid |
 
 **ทำไมเลือกตัวนี้:** ทุกตัวอนุญาตให้ใช้ในแอพที่มีรายได้ (core บางตัวเช่น Snes9x, PicoDrive ห้ามใช้เชิงพาณิชย์ จึงไม่เลือก)

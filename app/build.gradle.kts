@@ -43,8 +43,8 @@ android {
         manifestPlaceholders["admobAppId"] = admobAppId
         manifestPlaceholders["admobInterstitialId"] = admobInterstitialId
 
-        buildConfigField("String", "PRIVACY_URL", "\"https://github.com/YOUR_GITHUB/all-emulator/blob/main/docs/PRIVACY_POLICY.md\"")
-        buildConfigField("String", "SOURCE_URL", "\"https://github.com/YOUR_GITHUB/all-emulator\"")
+        buildConfigField("String", "PRIVACY_URL", "\"https://github.com/th-chirat/all-emulator/blob/main/docs/PRIVACY_POLICY.md\"")
+        buildConfigField("String", "SOURCE_URL", "\"https://github.com/th-chirat/all-emulator\"")
     }
 
     signingConfigs {
@@ -112,5 +112,7 @@ dependencies {
     implementation(libs.compose.ui)
     implementation(libs.compose.material3)
     implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     ksp(libs.hilt.compiler)
 }

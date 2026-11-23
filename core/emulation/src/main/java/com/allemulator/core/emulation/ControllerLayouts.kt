@@ -18,10 +18,9 @@ object ControllerLayouts {
     /** คืนผังปุ่มเริ่มต้นของเครื่องเกมที่ระบุ */
     fun defaultFor(system: GameSystem): ControllerLayout = when (system) {
         GameSystem.GB, GameSystem.GBC, GameSystem.NES -> twoButton()
-        GameSystem.NDS -> nds()
+        GameSystem.GBA -> gba()
         GameSystem.PSP -> playstation(twoShoulderRows = false, twoSticks = false)
         GameSystem.PS1 -> playstation(twoShoulderRows = true, twoSticks = true)
-        GameSystem.PS2 -> playstation(twoShoulderRows = true, twoSticks = true)
     }
 
     // ---------------- ตัวช่วยสร้างปุ่มแต่ละแบบ ----------------
@@ -62,34 +61,19 @@ object ControllerLayouts {
         ),
     )
 
-    // ---------------- NDS (4 ปุ่ม + L/R) ----------------
-    private fun nds() = ControllerLayout(
-        landscape = listOf(
-            dpad(0.10f, 0.62f, 0.32f),
-            face("y", "Y", KeyEvent.KEYCODE_BUTTON_Y, 0.83f, 0.62f, 0.12f),
-            face("x", "X", KeyEvent.KEYCODE_BUTTON_X, 0.895f, 0.48f, 0.12f),
-            face("b", "B", KeyEvent.KEYCODE_BUTTON_B, 0.895f, 0.76f, 0.12f),
-            face("a", "A", KeyEvent.KEYCODE_BUTTON_A, 0.96f, 0.62f, 0.12f),
-            shoulder("l", "L", KeyEvent.KEYCODE_BUTTON_L1, 0.08f, 0.10f),
-            shoulder("r", "R", KeyEvent.KEYCODE_BUTTON_R1, 0.92f, 0.10f),
-            small("select", "SELECT", SELECT, 0.06f, 0.94f),
-            small("start", "START", START, 0.94f, 0.94f),
+    // ---------------- GBA (2 ปุ่ม + L/R) ----------------
+    private fun gba() = ControllerLayout(
+        landscape = twoButton().landscape + listOf(
+            shoulder("l", "L", KeyEvent.KEYCODE_BUTTON_L1, 0.08f, 0.12f),
+            shoulder("r", "R", KeyEvent.KEYCODE_BUTTON_R1, 0.92f, 0.12f),
         ),
-        // แนวตั้ง: จอบน+จอล่างกินพื้นที่ด้านบนเยอะ ปุ่มจึงต้องอยู่ต่ำ
-        portrait = listOf(
-            dpad(0.20f, 0.84f, 0.30f),
-            face("y", "Y", KeyEvent.KEYCODE_BUTTON_Y, 0.70f, 0.84f, 0.12f),
-            face("x", "X", KeyEvent.KEYCODE_BUTTON_X, 0.80f, 0.78f, 0.12f),
-            face("b", "B", KeyEvent.KEYCODE_BUTTON_B, 0.80f, 0.90f, 0.12f),
-            face("a", "A", KeyEvent.KEYCODE_BUTTON_A, 0.90f, 0.84f, 0.12f),
-            shoulder("l", "L", KeyEvent.KEYCODE_BUTTON_L1, 0.10f, 0.70f),
-            shoulder("r", "R", KeyEvent.KEYCODE_BUTTON_R1, 0.90f, 0.70f),
-            small("select", "SELECT", SELECT, 0.40f, 0.97f),
-            small("start", "START", START, 0.60f, 0.97f),
+        portrait = twoButton().portrait + listOf(
+            shoulder("l", "L", KeyEvent.KEYCODE_BUTTON_L1, 0.12f, 0.56f),
+            shoulder("r", "R", KeyEvent.KEYCODE_BUTTON_R1, 0.88f, 0.56f),
         ),
     )
 
-    // ---------------- ตระกูล PlayStation (PSP / PS1 / PS2) ----------------
+    // ---------------- ตระกูล PlayStation (PSP / PS1) ----------------
     // libretro ใช้ตำแหน่งปุ่มแบบ SNES: A = ขวา(○)  B = ล่าง(×)  X = บน(△)  Y = ซ้าย(□)
     private fun playstation(twoShoulderRows: Boolean, twoSticks: Boolean): ControllerLayout {
         fun faces(cx: Float, cy: Float, gapX: Float, gapY: Float, s: Float) = listOf(

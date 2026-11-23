@@ -26,5 +26,6 @@ kotlin { jvmToolchain(17) }
 
 dependencies {
     implementation(libs.kotlinx.serialization.json)
+    api(libs.kotlinx.coroutines.android) // StateFlow ของภาษา (L10n.kt)
     testImplementation(libs.junit)
 }

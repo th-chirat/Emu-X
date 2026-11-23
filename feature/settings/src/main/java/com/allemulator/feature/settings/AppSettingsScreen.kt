@@ -10,6 +10,10 @@
  */
 package com.allemulator.feature.settings
 
+import com.allemulator.core.emulation.tr
+import com.allemulator.core.designsystem.settings.ChipChoice
+import com.allemulator.core.designsystem.settings.NavRow
+import com.allemulator.core.designsystem.settings.SwitchRow
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
@@ -67,18 +71,20 @@ class AppSettingsViewModel @Inject constructor(
     val isPremium = billing.isPremium.stateIn(viewModelScope, SharingStarted.Eagerly, false)
     val haptics = settings.haptics.stateIn(viewModelScope, SharingStarted.Eagerly, true)
     fun setHaptics(on: Boolean) = viewModelScope.launch { settings.setHaptics(on) }
+
+    /** เปิดหน้าสอนใช้งานอีกครั้ง (ขึ้นทับหน้าแรก) */
+    fun showTutorial() = viewModelScope.launch { settings.setTutorialSeen(false) }
 }
 
 /** ข้อมูล license ของ emulator core ที่ใช้ (GPL บังคับให้แจ้งผู้ใช้) */
-private val CORE_LICENSES = listOf(
+private val CORE_LICENSES get() = listOf(
     "PPSSPP (PSP)" to "GPL-2.0+ — github.com/hrydgard/ppsspp",
     "PCSX-ReARMed (PS1)" to "GPL-2.0 — github.com/libretro/pcsx_rearmed",
-    "Play! (PS2)" to "BSD-2-Clause — github.com/jpd002/Play-",
     "Gambatte (GB/GBC)" to "GPL-2.0 — github.com/libretro/gambatte-libretro",
     "FCEUmm (NES)" to "GPL-2.0 — github.com/libretro/libretro-fceumm",
-    "melonDS DS (NDS)" to "GPL-3.0 — github.com/JesseTG/melonds-ds",
+    "mGBA (GBA)" to "MPL-2.0 — github.com/libretro/mgba",
     "LibretroDroid" to "GPL-3.0 — github.com/Swordfish90/LibretroDroid",
-    "Haze (เอฟเฟกต์กระจก)" to "Apache-2.0 — github.com/chrisbanes/haze",
+    tr("Haze (เอฟเฟกต์กระจก)", "Haze (glass effect)") to "Apache-2.0 — github.com/chrisbanes/haze",
 )
 
 /**
@@ -104,8 +110,8 @@ fun AppSettingsScreen(
     GlassScaffold {
         Column(Modifier.fillMaxSize()) {
             GlassTopBar(
-                title = "ตั้งค่า",
-                navigation = { GlassIconButton(Icons.AutoMirrored.Rounded.ArrowBack, "กลับ", onBack) },
+                title = tr("ตั้งค่า", "Settings"),
+                navigation = { GlassIconButton(Icons.AutoMirrored.Rounded.ArrowBack, tr("กลับ", "Back"), onBack) },
             )
             Column(
                 Modifier
@@ -118,38 +124,39 @@ fun AppSettingsScreen(
                 GlassSection("ALL Emulator Premium") {
                     if (premium) {
                         Icon(Icons.Rounded.CheckCircle, null, tint = Color(0xFF5BE38A))
-                        Text("คุณเป็นสมาชิก Premium ตลอดชีพ ไม่มีโฆษณาอีกต่อไป ขอบคุณที่สนับสนุน!", color = Color.White)
+                        Text(tr("คุณเป็นสมาชิก Premium ตลอดชีพ ไม่มีโฆษณาอีกต่อไป ขอบคุณที่สนับสนุน!", "You have lifetime Premium — no more ads. Thanks for your support!"), color = Color.White)
                     } else {
                         Icon(Icons.Rounded.Block, null, tint = GlassColors.Beta)
-                        Text("จ่ายครั้งเดียว ไม่มีโฆษณาตลอดชีพ", color = Color.White, style = MaterialTheme.typography.titleMedium)
-                        Text("โฆษณาแสดงไม่เกิน 1 ครั้งทุก 3 ชั่วโมง และจะไม่ขึ้นระหว่างเล่นเกม", color = GlassColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                        Text(tr("จ่ายครั้งเดียว ไม่มีโฆษณาตลอดชีพ", "Pay once, no ads forever"), color = Color.White, style = MaterialTheme.typography.titleMedium)
+                        Text(tr("โฆษณาแสดงไม่เกิน 1 ครั้งทุก 1 ชั่วโมง และจะไม่ขึ้นระหว่างเล่นเกม", "Ads show at most once an hour and never during gameplay"), color = GlassColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
                         GlassButton(
-                            text = "ลบโฆษณา " + (price ?: ""),
+                            text = tr("ลบโฆษณา ", "Remove ads ") + (price ?: ""),
                             onClick = { context.findActivity()?.let(viewModel.billing::purchase) },
                             modifier = Modifier.fillMaxWidth(),
                             tint = GlassColors.Accent,
                         )
                     }
-                    NavRow("กู้คืนการซื้อ", { viewModel.billing.refresh() }, "สำหรับคนที่เคยซื้อแล้วลงแอพใหม่/เปลี่ยนเครื่อง")
+                    NavRow(tr("กู้คืนการซื้อ", "Restore purchase"), { viewModel.billing.refresh() }, tr("สำหรับคนที่เคยซื้อแล้วลงแอพใหม่/เปลี่ยนเครื่อง", "If you bought before and reinstalled or changed phones"))
                     message?.let { Text(it, color = GlassColors.Accent) }
                 }
 
                 // ---------------- ทั่วไป ----------------
-                GlassSection("ทั่วไป") {
-                    SwitchRow("สั่นเมื่อกดปุ่มจอย", haptics, { viewModel.setHaptics(it) })
+                GlassSection(tr("ทั่วไป", "General")) {
+                    SwitchRow(tr("สั่นเมื่อกดปุ่มจอย", "Vibrate on button press"), haptics, { viewModel.setHaptics(it) })
+                    NavRow(tr("ดูวิธีใช้งานอีกครั้ง", "Show tutorial again"), { viewModel.showTutorial(); onBack() })
                 }
 
                 // ---------------- เกี่ยวกับ ----------------
-                GlassSection("เกี่ยวกับ") {
-                    Text("ALL Emulator เวอร์ชัน $versionName", color = Color.White)
+                GlassSection(tr("เกี่ยวกับ", "About")) {
+                    Text(tr("ALL Emulator เวอร์ชัน $versionName", "ALL Emulator version $versionName"), color = Color.White)
                     Text(
-                        "แอพนี้ไม่มีเกมหรือ BIOS แถมมาให้ กรุณาใช้ไฟล์เกมที่คุณเป็นเจ้าของโดยชอบด้วยกฎหมายเท่านั้น",
+                        tr("แอพนี้ไม่มีเกมหรือ BIOS แถมมาให้ กรุณาใช้ไฟล์เกมที่คุณเป็นเจ้าของโดยชอบด้วยกฎหมายเท่านั้น", "This app includes no games or BIOS. Only use game files you legally own."),
                         color = GlassColors.TextSecondary,
                         style = MaterialTheme.typography.bodyMedium,
                     )
-                    NavRow("นโยบายความเป็นส่วนตัว", { context.openUrl(privacyUrl) })
-                    NavRow("ซอร์สโค้ด (โอเพนซอร์ส GPL)", { context.openUrl(sourceUrl) })
-                    NavRow("License ของ emulator ที่ใช้", { showLicenses = true })
+                    NavRow(tr("นโยบายความเป็นส่วนตัว", "Privacy policy"), { context.openUrl(privacyUrl) })
+                    NavRow(tr("ซอร์สโค้ด (โอเพนซอร์ส GPL)", "Source code (open source, GPL)"), { context.openUrl(sourceUrl) })
+                    NavRow(tr("License ของ emulator ที่ใช้", "Emulator licenses"), { showLicenses = true })
                 }
             }
         }
@@ -158,7 +165,7 @@ fun AppSettingsScreen(
     if (showLicenses) {
         AlertDialog(
             onDismissRequest = { showLicenses = false },
-            title = { Text("โอเพนซอร์สที่ใช้") },
+            title = { Text(tr("โอเพนซอร์สที่ใช้", "Open-source software")) },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     CORE_LICENSES.forEach { (name, license) ->
@@ -167,7 +174,7 @@ fun AppSettingsScreen(
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { showLicenses = false }) { Text("ปิด") } },
+            confirmButton = { TextButton(onClick = { showLicenses = false }) { Text(tr("ปิด", "Close")) } },
         )
     }
 }

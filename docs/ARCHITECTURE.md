@@ -40,12 +40,15 @@ graph TD
 | หน้าแรก | `feature/home/.../HomeScreen.kt` |
 | หน้ารายการเกม / ปุ่ม + | `feature/library/.../LibraryScreen.kt` |
 | การสแกนโฟลเดอร์ | `core/data/.../scan/GameScanner.kt` |
-| หน้าเล่นเกม, เมนูหยุด, เซฟ | `feature/player/.../GameActivity.kt`, `PlayerOverlays.kt` |
+| หน้าเล่นเกม, เมนูหยุด, เซฟ, บอดี้เครื่อง Nintendo | `feature/player/.../GameActivity.kt`, `PlayerOverlays.kt` |
+| ตั้งค่าระหว่างเล่น (เมนูหยุด → ตั้งค่า) | `feature/player/.../InGameSettings.kt` |
+| เลือกไฟล์ / แตก .zip อัตโนมัติ | `core/data/.../GameRepository.kt` → `importFiles`, `GameFileResolver.kt` |
+| รูปไอคอนเครื่องเกม (ตัดพื้นหลัง+ลบโลโก้) | `core/designsystem/src/main/res/drawable-nodpi/console_*.png`, `scripts/make-console-icons.py` |
 | การส่งไฟล์เกมให้ emulator | `feature/player/.../GameFileResolver.kt` |
 | จอยบนจอ | `feature/player/.../gamepad/VirtualGamepad.kt` |
 | หน้าแก้ไขผังปุ่ม | `feature/player/.../gamepad/LayoutEditor.kt` |
 | FPS/CPU/GPU overlay | `feature/player/.../PerformanceMonitor.kt` |
-| ความถี่โฆษณา (3 ชม.) | `monetization/.../AdManager.kt` → `AD_INTERVAL_MS` |
+| ความถี่โฆษณา (1 ชม.) | `monetization/.../AdManager.kt` → `AD_INTERVAL_MS` |
 | สินค้าลบโฆษณา | `monetization/.../BillingManager.kt` → `PRODUCT_ID` |
 | รหัส AdMob, เวอร์ชันแอพ | `app/build.gradle.kts` |
 
@@ -64,7 +67,7 @@ sequenceDiagram
     L->>A: startActivity(gameUri)
     A->>VM: โหลดข้อมูลเกม + ค่าตั้งค่า + ผังปุ่ม + เซฟ
     VM->>R: หาวิธีส่งไฟล์ให้ core
-    R-->>VM: COPY (GB/GBC/NES) / VFS (PS1/PSP/NDS) / FD_PATH (PS2 .iso)
+    R-->>VM: COPY (GB/GBC/GBA/NES, .zip ทุกเครื่อง) / VFS (PS1/PSP)
     A->>G: สร้างจอ emulator + core options
     G-->>A: ERROR_LOAD_GAME? → เปิดใหม่แบบ COPY อัตโนมัติ
     U->>A: กดปุ่มบนจอ → sendKeyEvent / sendMotionEvent
@@ -92,5 +95,4 @@ sequenceDiagram
 ## 6. ข้อจำกัดที่ควรรู้
 
 - **GPU %**: Android ส่วนใหญ่ไม่อนุญาตให้แอพอ่าน → overlay แสดง `N/A` + เวลาต่อเฟรม
-- **PS2 (Play!)**: ช้าบนมือถือส่วนใหญ่ จึงติดป้าย Beta; รองรับ `.iso` ดีที่สุด (แบบอื่นต้องก๊อปลง cache ก่อน)
 - **Android 11+**: ผู้ใช้เลือกโฟลเดอร์ `Download` ตรงๆ ไม่ได้ (ระบบห้าม) ต้องสร้างโฟลเดอร์ย่อย เช่น `Download/Games`

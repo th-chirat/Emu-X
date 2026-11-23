@@ -38,6 +38,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -161,13 +165,31 @@ fun GlassTopBar(
             Spacer(Modifier.width(12.dp))
         }
         Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.headlineMedium, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            // จอแคบ (เช่น ตั้งการแสดงผลใหญ่) ตัวหนังสือจะย่อลงเองให้อ่านได้ครบ ไม่ถูกตัดเป็น "..."
+            ShrinkToFitText(title, MaterialTheme.typography.headlineMedium, Color.White, minSize = 16f)
             if (subtitle != null) {
-                Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = GlassColors.TextSecondary, maxLines = 1)
+                ShrinkToFitText(subtitle, MaterialTheme.typography.bodyMedium, GlassColors.TextSecondary, minSize = 11f)
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), content = actions)
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), content = actions)
     }
+}
+
+/** ข้อความ 1 บรรทัดที่ย่อขนาดตัวอักษรลงเรื่อยๆ จนพอดีความกว้าง (ไม่ต่ำกว่า [minSize] sp) */
+@Composable
+private fun ShrinkToFitText(text: String, style: TextStyle, color: Color, minSize: Float) {
+    var size by remember(text) { mutableStateOf(style.fontSize.value) }
+    Text(
+        text,
+        style = style.copy(fontSize = size.sp),
+        color = color,
+        maxLines = 1,
+        softWrap = false,
+        overflow = TextOverflow.Ellipsis,
+        onTextLayout = { layout ->
+            if (layout.hasVisualOverflow && size > minSize) size = (size * 0.9f).coerceAtLeast(minSize)
+        },
+    )
 }
 
 /** ป้าย BETA สีส้ม */

@@ -9,10 +9,12 @@
  */
 package com.allemulator.feature.library
 
+import com.allemulator.core.emulation.tr
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.allemulator.core.data.CoverStore
 import com.allemulator.core.data.GameRepository
 import com.allemulator.core.data.db.FolderEntity
 import com.allemulator.core.data.db.GameEntity
@@ -41,7 +43,21 @@ data class LibraryUiState(
 class LibraryViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: GameRepository,
+    private val covers: CoverStore,
 ) : ViewModel() {
+
+    // ---------------- ปกเกม (กดค้างที่เกม → เปลี่ยนปกเกม) ----------------
+
+    /** เปลี่ยนเมื่อปกเกมใดๆ ถูกแก้ → รายการโหลดรูปใหม่ */
+    val coverVersion: StateFlow<Int> = covers.version
+
+    fun coverFile(game: GameEntity): java.io.File? = covers.coverFile(game.uri)
+
+    fun setCover(game: GameEntity, image: Uri) = viewModelScope.launch {
+        if (!covers.setCover(game.uri, image)) message.value = tr("ใส่ปกไม่สำเร็จ", "Couldn't set the cover")
+    }
+
+    fun removeCover(game: GameEntity) = covers.removeCover(game.uri)
 
     /** เครื่องเกมของหน้านี้ — ส่งมาจาก navigation ในชื่อ "systemId" */
     val system: GameSystem = GameSystem.fromId(checkNotNull(savedStateHandle.get<String>("systemId")))
@@ -69,8 +85,19 @@ class LibraryViewModel @Inject constructor(
         scanning.value = true
         message.value = runCatching { repository.addFolder(system, uri) }
             .fold(
-                onSuccess = { n -> if (n == 0) "ไม่พบไฟล์เกม ${system.displayName} ในโฟลเดอร์นี้" else "เพิ่ม $n เกมแล้ว" },
-                onFailure = { "อ่านโฟลเดอร์ไม่ได้: ${it.message}" },
+                onSuccess = { n -> if (n == 0) tr("ไม่พบไฟล์เกม ${system.displayName} ในโฟลเดอร์นี้", "No ${system.displayName} games found in this folder") else tr("เพิ่ม $n เกมแล้ว", "Added $n games") },
+                onFailure = { tr("อ่านโฟลเดอร์ไม่ได้: ${it.message}", "Can't read folder: ${it.message}") },
+            )
+        scanning.value = false
+    }
+
+    /** ผู้ใช้เลือกไฟล์ (หรือ .zip) จากหน้าต่างระบบแล้ว — zip จะถูกแตกไฟล์อัตโนมัติ */
+    fun onFilesPicked(uris: List<Uri>) = viewModelScope.launch {
+        scanning.value = true
+        message.value = runCatching { repository.importFiles(system, uris) }
+            .fold(
+                onSuccess = { n -> if (n == 0) tr("ไม่พบไฟล์เกม ${system.displayName} ในไฟล์ที่เลือก", "No ${system.displayName} games in the selected files") else tr("เพิ่ม $n เกมแล้ว", "Added $n games") },
+                onFailure = { tr("เปิดไฟล์ไม่ได้: ${it.message}", "Can't open file: ${it.message}") },
             )
         scanning.value = false
     }
@@ -79,7 +106,7 @@ class LibraryViewModel @Inject constructor(
         scanning.value = true
         repository.rescanSystem(system)
         scanning.value = false
-        message.value = "สแกนใหม่เรียบร้อย"
+        message.value = tr("สแกนใหม่เรียบร้อย", "Rescan complete")
     }
 
     fun removeFolder(folder: FolderEntity) = viewModelScope.launch {

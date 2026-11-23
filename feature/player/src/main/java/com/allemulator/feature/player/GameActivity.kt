@@ -6,17 +6,30 @@
  * ชั้นของหน้าจอ (ล่าง → บน):
  *   1) GLRetroView   — จอ emulator (OpenGL) จาก LibretroDroid
  *   2) VirtualGamepad — จอยเสมือน
- *   3) PerfOverlay   — FPS/CPU/GPU (ถ้าเปิดไว้)
+ *   3) PerfOverlay   — FPS/CPU (ถ้าเปิดไว้)
  *   4) PauseMenu     — เมนูหยุดเกม (กดปุ่มย้อนกลับ หรือปุ่ม ☰ มุมบน)
+ *
+ * จอยจริง (Bluetooth/USB): ต่อแล้วจอยบนจอซ่อนเอง → แตะจอเมื่อไหร่ จอยบนจอโผล่กลับมา
+ * เครื่อง Nintendo: พื้นหลังเป็น "บอดี้เครื่อง" สีตามเครื่อง + กรอบจอ ไม่มีพื้นที่สีดำโล่งๆ
  *
  * เริ่มเกมจากที่อื่นด้วย: startActivity(GameActivity.intent(context, gameUri))
  * -----------------------------------------------------------------------------
  */
 package com.allemulator.feature.player
 
+import com.allemulator.core.designsystem.glass.glass
+import kotlin.coroutines.resume
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.suspendCancellableCoroutine
+import android.view.PixelCopy
+import android.os.Looper
+import android.os.Handler
+import android.graphics.Bitmap
+import com.allemulator.core.emulation.tr
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.hardware.input.InputManager
 import android.os.Bundle
 import android.view.InputDevice
 import android.view.KeyEvent
@@ -29,6 +42,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -62,8 +81,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.allemulator.core.designsystem.glass.GlassIconButton
 import com.allemulator.core.designsystem.theme.AllEmulatorTheme
+import com.allemulator.core.emulation.AutoTuner
 import com.allemulator.core.emulation.CoreOptions
 import com.allemulator.core.emulation.GameSystem
+import com.allemulator.core.emulation.PerformanceSettings
 import com.allemulator.core.emulation.ScreenShader
 import com.allemulator.feature.player.gamepad.GamepadListener
 import com.allemulator.feature.player.gamepad.MotionSource
@@ -87,11 +108,32 @@ class GameActivity : ComponentActivity() {
     /** จอ emulator — มีได้ทีละ 1 ตัวเท่านั้น (LibretroDroid เป็น singleton ฝั่ง C++) */
     private var retroView: GLRetroView? = null
 
+    /**
+     * true = ผู้ใช้กำลังใช้จอยจริงอยู่ → ซ่อนจอยบนจอ
+     * เปลี่ยนเป็น true เมื่อ: เปิดเกมตอนต่อจอยอยู่ / เสียบจอยระหว่างเล่น / กดปุ่มบนจอยจริง
+     * เปลี่ยนเป็น false เมื่อ: แตะหน้าจอ / ถอดจอยออก
+     */
+    private val gamepadActive = mutableStateOf(false)
+
+    private val inputListener = object : InputManager.InputDeviceListener {
+        override fun onInputDeviceAdded(deviceId: Int) {
+            if (InputDevice.getDevice(deviceId)?.let { !it.isVirtual && isGamepad(it.sources) } == true) {
+                gamepadActive.value = true
+            }
+        }
+        override fun onInputDeviceRemoved(deviceId: Int) {
+            if (!hasPhysicalGamepad()) gamepadActive.value = false
+        }
+        override fun onInputDeviceChanged(deviceId: Int) = Unit
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         hideSystemBars()
+        gamepadActive.value = hasPhysicalGamepad()
+        getSystemService(InputManager::class.java).registerInputDeviceListener(inputListener, null)
 
         setContent {
             AllEmulatorTheme {
@@ -111,9 +153,10 @@ class GameActivity : ComponentActivity() {
     // สร้างจอ emulator
     // =========================================================================
     private fun createRetroView(s: PlayerState.Ready): GLRetroView {
+        // core ถูกแตกไฟล์ไว้ที่ nativeLibraryDir (ตั้ง useLegacyPackaging = true ใน app/build.gradle.kts)
+        val corePath = "${applicationInfo.nativeLibraryDir}/${s.system.coreLibrary}"
         val data = GLRetroViewData(this).apply {
-            // core ถูกแตกไฟล์ไว้ที่ nativeLibraryDir (ตั้ง useLegacyPackaging = true ใน app/build.gradle.kts)
-            coreFilePath = "${applicationInfo.nativeLibraryDir}/${s.system.coreLibrary}"
+            coreFilePath = corePath
             when (val r = s.resolved) {
                 is ResolvedGame.Virtual -> gameVirtualFiles = r.files
                 is ResolvedGame.Path -> gameFilePath = r.path
@@ -122,12 +165,7 @@ class GameActivity : ComponentActivity() {
             savesDirectory = s.savesDir.absolutePath
             variables = CoreOptions.build(s.system, s.performance).map { Variable(it.key, it.value) }.toTypedArray()
             saveRAMState = s.sram
-            shader = when (s.performance.shader) {
-                ScreenShader.NONE -> ShaderConfig.Default
-                ScreenShader.SHARP -> ShaderConfig.Sharp
-                ScreenShader.LCD -> ShaderConfig.LCD
-                ScreenShader.CRT -> ShaderConfig.CRT
-            }
+            shader = shaderConfig(s.performance.shader)
             preferLowLatencyAudio = s.performance.lowLatencyAudio
             rumbleEventsEnabled = false
         }
@@ -150,9 +188,23 @@ class GameActivity : ComponentActivity() {
         val monitor = remember { PerformanceMonitor(applicationContext) }
 
         var menuOpen by remember { mutableStateOf(false) }
+        // ภาพหน้าจอตอนเปิดเมนู → ใช้ทำพื้นหลังเบลอให้เมนูเป็นกระจก
+        var menuSnapshot by remember { mutableStateOf<Bitmap?>(null) }
         var fastForward by remember { mutableStateOf(false) }
-        var showPad by remember { mutableStateOf(!hasPhysicalGamepad()) }
+        // จอยบนจอซ่อนอัตโนมัติเมื่อใช้จอยจริง (แตะจอเมื่อไหร่ก็โผล่กลับมา)
+        val padVisible = !gamepadActive.value
+        // เปิดเมนู: ถ่ายภาพจอก่อน (ก่อนเมนูขึ้น ภาพจะได้ไม่ติดตัวเมนู) แล้วค่อยเปิด
+        val openMenu: () -> Unit = {
+            scope.launch {
+                menuSnapshot = captureScreen()
+                menuOpen = true
+            }
+        }
         var perf by remember { mutableStateOf(PerfSnapshot()) }
+        // ค่าที่ปรับได้ระหว่างเล่น (เมนู → ตั้งค่า)
+        var performance by remember { mutableStateOf(s.performance) }
+        var overlay by remember { mutableStateOf(s.overlay) }
+        var haptics by remember { mutableStateOf(s.haptics) }
         var error by remember { mutableStateOf<String?>(null) }
 
         // ---- ฟังเหตุการณ์จาก emulator: เฟรมวาดเสร็จ (นับ FPS) และ error ----
@@ -171,14 +223,33 @@ class GameActivity : ComponentActivity() {
             }
             view.requestFocus()
         }
-        // ---- เก็บค่าประสิทธิภาพทุก 1 วินาที (เฉพาะตอนเปิด overlay) ----
-        if (s.overlay.anyEnabled) {
-            LaunchedEffect(Unit) {
-                while (isActive) {
-                    delay(1_000)
-                    perf = withContext(Dispatchers.Default) { monitor.sample() }
+        // ---- วัดประสิทธิภาพทุก 1 วินาที → แสดงบน overlay + ปรับความลื่นอัตโนมัติ (AutoTuner) ----
+        val tuner = remember { AutoTuner(s.system) }
+        val debuggable = applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0
+        var tuneMessage by remember { mutableStateOf<String?>(null) }
+        LaunchedEffect(Unit) {
+            while (isActive) {
+                delay(1_000)
+                perf = withContext(Dispatchers.Default) { monitor.sample() }
+                // debug build: log ไว้วัดผลผ่าน adb logcat -s AllEmuPerf (ใช้ตอนปรับความลื่น)
+                if (debuggable) android.util.Log.i("AllEmuPerf", "${s.system.id} fps=${perf.fps} cpu=${perf.cpuPercent}")
+                // ตอนเปิดเมนู (เกมหยุด) หรือเร่งความเร็ว FPS ไม่ใช่ค่าจริง → ไม่นับ
+                if (menuOpen || fastForward) {
+                    tuner.reset()
+                    continue
+                }
+                tuner.onSample(perf.fps, performance)?.let { step ->
+                    applyPerformance(view, s.system, performance, step.settings)
+                    performance = step.settings
+                    viewModel.savePerformance(step.settings) // เปิดเกมครั้งหน้าเริ่มที่ค่านี้เลย
+                    tuneMessage = step.message
+                    android.util.Log.i("AllEmuPerf", "autotune: ${step.message}")
                 }
             }
+        }
+        // ข้อความ "ปรับอัตโนมัติ" หายเองใน 4 วินาที
+        LaunchedEffect(tuneMessage) {
+            if (tuneMessage != null) { delay(4_000); tuneMessage = null }
         }
         // ---- เซฟในเกม (SRAM) อัตโนมัติทุก 30 วินาที กันข้อมูลหายถ้าแอพถูกปิดกะทันหัน ----
         LaunchedEffect(Unit) {
@@ -193,7 +264,7 @@ class GameActivity : ComponentActivity() {
             onDispose { }
         }
 
-        BackHandler { menuOpen = !menuOpen }
+        BackHandler { if (menuOpen) menuOpen = false else openMenu() }
 
         val listener = remember(view) {
             object : GamepadListener {
@@ -211,33 +282,67 @@ class GameActivity : ComponentActivity() {
             }
         }
 
-        Box(Modifier.fillMaxSize()) {
-            // แนวตั้ง: จอเกมอยู่ด้านบน (NDS สูงกว่าเพราะมี 2 จอ) / แนวนอน: เต็มจอ
+        val body = consoleBody(s.system)
+        Box(Modifier.fillMaxSize().then(if (body != null) Modifier.background(body) else Modifier)) {
+            // แนวตั้ง: จอเกมอยู่ด้านบน / แนวนอน: เต็มจอ
             val gameHeight = when {
                 landscape -> 1f
-                s.system.dualScreen -> 0.64f
                 else -> 0.5f
             }
-            Column(Modifier.fillMaxSize().safeDrawingPadding()) {
-                AndroidView(factory = { view }, modifier = Modifier.fillMaxWidth().fillMaxHeight(gameHeight))
+            if (body != null) {
+                // เครื่อง Nintendo: จอเกมขนาดพอดีสัดส่วนจอจริง อยู่ในกรอบจอ บนบอดี้สีของเครื่อง
+                BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding()) {
+                    val aspect = screenAspect(s.system)
+                    val areaW = maxWidth - 24.dp
+                    val areaH = maxHeight * gameHeight - 24.dp
+                    val w = minOf(areaW, areaH * aspect)
+                    Box(
+                        Modifier
+                            .align(if (landscape) Alignment.Center else Alignment.TopCenter)
+                            .padding(top = if (landscape) 0.dp else 12.dp)
+                            .size(w + 16.dp, w / aspect + 16.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color(0xFF15151C)) // กรอบจอ (สีเข้มเหมือนกระจกหน้าจอ)
+                            .padding(8.dp),
+                    ) {
+                        AndroidView(factory = { view }, modifier = Modifier.fillMaxSize())
+                    }
+                }
+            } else {
+                Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+                    AndroidView(factory = { view }, modifier = Modifier.fillMaxWidth().fillMaxHeight(gameHeight))
+                }
             }
 
-            if (showPad) {
+            if (padVisible) {
                 VirtualGamepad(
                     buttons = s.layout.forOrientation(landscape),
                     listener = listener,
-                    haptics = s.haptics,
+                    haptics = haptics,
                     modifier = Modifier.safeDrawingPadding(),
                 )
             }
 
-            if (s.overlay.anyEnabled) {
-                PerfOverlay(perf, s.overlay, Modifier.safeDrawingPadding().padding(8.dp))
+            if (overlay.anyEnabled) {
+                PerfOverlay(perf, overlay, Modifier.safeDrawingPadding().padding(8.dp))
+            }
+
+            // แจ้งว่าแอพเพิ่งปรับความลื่นให้อัตโนมัติ
+            tuneMessage?.let { msg ->
+                Text(
+                    msg,
+                    color = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(24.dp)
+                        .glass(RoundedCornerShape(16.dp))
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                )
             }
 
             // ปุ่มเปิดเมนู (มุมขวาบน)
             GlassIconButton(
-                Icons.Rounded.Menu, "เมนู", { menuOpen = true },
+                Icons.Rounded.Menu, tr("เมนู", "Menu"), openMenu,
                 modifier = Modifier.align(Alignment.TopCenter).safeDrawingPadding().padding(top = 4.dp),
                 size = 36,
             )
@@ -245,8 +350,8 @@ class GameActivity : ComponentActivity() {
             if (menuOpen) {
                 PauseMenu(
                     title = s.game.title,
+                    snapshot = menuSnapshot,
                     fastForward = fastForward,
-                    showPad = showPad,
                     slotInfo = { slot -> viewModel.stateFile(slot)?.takeIf { it.exists() }?.lastModified() },
                     onResume = { menuOpen = false },
                     onSave = { slot ->
@@ -261,18 +366,83 @@ class GameActivity : ComponentActivity() {
                         fastForward = !fastForward
                         view.frameSpeed = if (fastForward) 2 else 1
                     },
-                    onTogglePad = { showPad = !showPad },
                     onReset = { menuOpen = false; scope.launch { delay(100); view.reset() } },
                     onExit = {
                         // ต้อง resume ก่อน เพื่อให้ thread ของ emulator ทำงานเซฟได้
                         view.onResume()
                         scope.launch { saveSram(); finish() }
                     },
+                    settingsContent = {
+                        InGameSettings(
+                            performance = performance,
+                            overlay = overlay,
+                            haptics = haptics,
+                            onPerformance = { new ->
+                                applyPerformance(view, s.system, performance, new)
+                                performance = new
+                                viewModel.savePerformance(new)
+                            },
+                            onOverlay = { overlay = it; viewModel.saveOverlay(it) },
+                            onHaptics = { haptics = it; viewModel.saveHaptics(it) },
+                        )
+                    },
                 )
             }
         }
 
         error?.let { ErrorDialog(it) }
+    }
+
+    /**
+     * ถ่ายภาพหน้าจอทั้งหน้าต่าง (รวมจอเกม OpenGL) ด้วย PixelCopy — มีตั้งแต่ Android 8
+     * ถ่ายไม่ได้/ช้าเกิน 300 ms → null (เมนูจะใช้พื้นมืดโปร่งแทน)
+     */
+    private suspend fun captureScreen(): Bitmap? {
+        val decor = window.decorView
+        if (decor.width <= 0 || decor.height <= 0) return null
+        val bitmap = Bitmap.createBitmap(decor.width, decor.height, Bitmap.Config.ARGB_8888)
+        return withTimeoutOrNull(300) {
+            suspendCancellableCoroutine { cont ->
+                runCatching {
+                    PixelCopy.request(window, bitmap, { result ->
+                        if (cont.isActive) cont.resume(if (result == PixelCopy.SUCCESS) bitmap else null)
+                    }, Handler(Looper.getMainLooper()))
+                }.onFailure { if (cont.isActive) cont.resume(null) }
+            }
+        }
+    }
+
+    private fun shaderConfig(shader: ScreenShader): ShaderConfig = when (shader) {
+        ScreenShader.NONE -> ShaderConfig.Default
+        ScreenShader.SHARP -> ShaderConfig.Sharp
+        ScreenShader.LCD -> ShaderConfig.LCD
+        ScreenShader.CRT -> ShaderConfig.CRT
+    }
+
+    /** ใช้ค่าความลื่น/ฟิลเตอร์ใหม่กับเกมที่กำลังเล่นทันที */
+    private fun applyPerformance(view: GLRetroView, system: GameSystem, old: PerformanceSettings, new: PerformanceSettings) {
+        if (old.shader != new.shader) view.shader = shaderConfig(new.shader)
+        val vars = CoreOptions.build(system, new).map { Variable(it.key, it.value) }
+        if (vars.isNotEmpty()) runCatching { view.updateVariables(*vars.toTypedArray()) }
+    }
+
+    /** สีบอดี้เครื่อง (เฉพาะเครื่อง Nintendo) — null = ใช้พื้นดำแบบเดิม */
+    private fun consoleBody(system: GameSystem): Brush? = when (system) {
+        GameSystem.GB, GameSystem.GBC, GameSystem.GBA, GameSystem.NES -> Brush.verticalGradient(
+            listOf(
+                lerp(Color(system.accentStart), Color.Black, 0.30f),
+                lerp(Color(system.accentEnd), Color.Black, 0.55f),
+            ),
+        )
+        else -> null
+    }
+
+    /** สัดส่วนจอ (กว้าง/สูง) ของแต่ละเครื่อง — ใช้ทำกรอบจอให้พอดีภาพ ไม่มีแถบดำ */
+    private fun screenAspect(system: GameSystem): Float = when (system) {
+        GameSystem.GB, GameSystem.GBC -> 160f / 144f
+        GameSystem.GBA -> 240f / 160f
+        GameSystem.NES -> 4f / 3f
+        else -> 4f / 3f
     }
 
     // =========================================================================
@@ -303,6 +473,7 @@ class GameActivity : ComponentActivity() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val v = retroView
         if (v != null && event.keyCode != KeyEvent.KEYCODE_BACK && isGamepad(event.source)) {
+            gamepadActive.value = true // กดจอยจริง → ซ่อนจอยบนจอ
             return when (event.action) {
                 KeyEvent.ACTION_DOWN -> v.onKeyDown(event.keyCode, event)
                 KeyEvent.ACTION_UP -> v.onKeyUp(event.keyCode, event)
@@ -313,8 +484,22 @@ class GameActivity : ComponentActivity() {
     }
 
     override fun dispatchGenericMotionEvent(ev: MotionEvent): Boolean {
-        retroView?.let { if (isGamepad(ev.source)) return it.onGenericMotionEvent(ev) }
+        retroView?.let {
+            if (isGamepad(ev.source)) {
+                gamepadActive.value = true
+                return it.onGenericMotionEvent(ev)
+            }
+        }
         return super.dispatchGenericMotionEvent(ev)
+    }
+
+    /** แตะหน้าจอ → โชว์จอยบนจอกลับมา (กรณีถูกซ่อนเพราะใช้จอยจริง) */
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        if (ev.actionMasked == MotionEvent.ACTION_DOWN && gamepadActive.value) {
+            gamepadActive.value = false
+            return true // แตะแรกแค่เรียกจอยกลับมา ไม่กดปุ่มใดๆ
+        }
+        return super.dispatchTouchEvent(ev)
     }
 
     private fun isGamepad(source: Int) =
@@ -342,32 +527,40 @@ class GameActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        if (isFinishing) exitedGame = true
+        getSystemService(InputManager::class.java).unregisterInputDeviceListener(inputListener)
         retroView = null
         super.onDestroy()
     }
 
     private fun errorMessage(code: Int, system: GameSystem): String = when (code) {
-        GLRetroView.ERROR_LOAD_LIBRARY -> "ไม่พบ emulator ของ ${system.displayName} ในแอพ (ไฟล์ ${system.coreLibrary}) — ติดตั้งแอพเวอร์ชันเต็มหรือรัน scripts/fetch-cores.sh"
-        GLRetroView.ERROR_LOAD_GAME -> "เปิดไฟล์เกมไม่ได้ ไฟล์อาจเสีย หรือไม่ใช่เกม ${system.displayName}" +
-            (system.biosNote?.let { "\n\nหมายเหตุ: $it" } ?: "")
-        GLRetroView.ERROR_GL_NOT_COMPATIBLE -> "การ์ดจอของมือถือเครื่องนี้ไม่รองรับ ${system.displayName}"
-        GLRetroView.ERROR_SERIALIZATION -> "เซฟ/โหลดไม่สำเร็จ"
-        else -> "เกิดข้อผิดพลาดใน emulator (รหัส $code)"
+        GLRetroView.ERROR_LOAD_LIBRARY -> tr("ไม่พบ emulator ของ ${system.displayName} ในแอพ (ไฟล์ ${system.coreLibrary}) — ติดตั้งแอพเวอร์ชันเต็มหรือรัน scripts/fetch-cores.sh", "The ${system.displayName} emulator is missing (${system.coreLibrary}) — install the full app or run scripts/fetch-cores.sh")
+        GLRetroView.ERROR_LOAD_GAME -> tr("เปิดไฟล์เกมไม่ได้ ไฟล์อาจเสีย หรือไม่ใช่เกม ${system.displayName}", "Can't open the game. The file may be damaged or isn't a ${system.displayName} game") +
+            (system.biosNote?.let { tr("\n\nหมายเหตุ: $it", "\n\nNote: $it") } ?: "")
+        GLRetroView.ERROR_GL_NOT_COMPATIBLE -> tr("การ์ดจอของมือถือเครื่องนี้ไม่รองรับ ${system.displayName}", "This phone's GPU doesn't support ${system.displayName}")
+        GLRetroView.ERROR_SERIALIZATION -> tr("เซฟ/โหลดไม่สำเร็จ", "Save/load failed")
+        else -> tr("เกิดข้อผิดพลาดใน emulator (รหัส $code)", "Emulator error (code $code)")
     }
 
     @Composable
     private fun ErrorDialog(message: String) {
         AlertDialog(
             onDismissRequest = { finish() },
-            title = { Text("เล่นเกมไม่ได้") },
+            title = { Text(tr("เล่นเกมไม่ได้", "Can't play this game")) },
             text = { Text(message) },
-            confirmButton = { TextButton(onClick = { finish() }) { Text("กลับ") } },
+            confirmButton = { TextButton(onClick = { finish() }) { Text(tr("กลับ", "Back")) } },
         )
     }
 
     companion object {
         const val EXTRA_GAME_URI = "gameUri"
         const val EXTRA_FORCE_COPY = "forceCopy"
+
+        /** ผู้ใช้เพิ่งออกจากเกม → หน้าหลักใช้ตัดสินใจโชว์โฆษณา (จังหวะพัก) */
+        @Volatile private var exitedGame = false
+
+        /** อ่านแล้วล้างค่า: true = เพิ่งออกจากเกม */
+        fun consumeExitedFlag(): Boolean = exitedGame.also { exitedGame = false }
 
         /** สร้าง Intent สำหรับเปิดเกม */
         fun intent(context: Context, gameUri: String, forceCopy: Boolean = false): Intent =

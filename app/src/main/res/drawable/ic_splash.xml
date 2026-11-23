@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- ไอคอนหน้า splash: ย่อจอยลงให้อยู่ในวงกลมของ splash ได้ครบ (ไม่โดนตัดขอบ) -->
+<!-- ไอคอนหน้า splash: จอยถูกย่อไว้แล้วในไฟล์ ic_launcher_foreground จึงย่อเพิ่มเพียงเล็กน้อย -->
 <inset xmlns:android="http://schemas.android.com/apk/res/android"
     android:drawable="@drawable/ic_launcher_foreground"
-    android:inset="18%" />
+    android:inset="12%" />

@@ -23,7 +23,7 @@ ABIS=("${@:-arm64-v8a armeabi-v7a x86_64}")
 read -r -a ABIS <<< "${ABIS[*]}"
 
 # core ที่แอพใช้ (ต้องตรงกับ GameSystem.coreLibrary)
-CORES=(ppsspp pcsx_rearmed play gambatte fceumm melondsds)
+CORES=(ppsspp pcsx_rearmed gambatte fceumm mgba)
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT

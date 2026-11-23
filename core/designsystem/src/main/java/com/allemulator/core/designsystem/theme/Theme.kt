@@ -14,11 +14,15 @@ import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.allemulator.core.emulation.L10n
 import dev.chrisbanes.haze.HazeState
 
 /** สีหลักของระบบกระจก */
@@ -74,7 +78,11 @@ private val GlassColorScheme = darkColorScheme(
 /** ห่อทุกหน้าจอด้วยฟังก์ชันนี้ เพื่อให้ได้สี/ตัวอักษรของแอพ */
 @Composable
 fun AllEmulatorTheme(hazeState: HazeState? = null, content: @Composable () -> Unit) {
+    // เปลี่ยนภาษา (ไทย/English) → วาดหน้าจอใหม่ทั้งหมด ข้อความ tr() จึงเปลี่ยนทันที
+    val language by L10n.language.collectAsState()
     MaterialTheme(colorScheme = GlassColorScheme, typography = GlassTypography) {
-        CompositionLocalProvider(LocalHazeState provides hazeState, content = content)
+        CompositionLocalProvider(LocalHazeState provides hazeState) {
+            key(language) { content() }
+        }
     }
 }

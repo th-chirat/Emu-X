@@ -1,10 +1,10 @@
 /*
  * SettingsWidgets.kt
  * -----------------------------------------------------------------------------
- * ชิ้นส่วนเล็กๆ ที่ใช้ซ้ำในหน้าตั้งค่า: แถวสวิตช์, แถวกดได้, ปุ่มเลือกแบบชิป
+ * ชิ้นส่วนเล็กๆ ที่ใช้ซ้ำในหน้าตั้งค่า (หน้าตั้งค่าเครื่อง + ตั้งค่าระหว่างเล่น ใช้แบบเดียวกัน): แถวสวิตช์, แถวกดได้, ปุ่มเลือกแบบชิป
  * -----------------------------------------------------------------------------
  */
-package com.allemulator.feature.settings
+package com.allemulator.core.designsystem.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,7 +32,7 @@ import com.allemulator.core.designsystem.theme.GlassColors
 
 /** แถว: หัวข้อ + คำอธิบาย + สวิตช์ */
 @Composable
-internal fun SwitchRow(title: String, checked: Boolean, onChange: (Boolean) -> Unit, subtitle: String? = null) {
+fun SwitchRow(title: String, checked: Boolean, onChange: (Boolean) -> Unit, subtitle: String? = null) {
     Row(
         Modifier.fillMaxWidth().clickable { onChange(!checked) },
         verticalAlignment = Alignment.CenterVertically,
@@ -47,7 +47,7 @@ internal fun SwitchRow(title: String, checked: Boolean, onChange: (Boolean) -> U
 
 /** แถวกดได้ มีลูกศร > */
 @Composable
-internal fun NavRow(title: String, onClick: () -> Unit, subtitle: String? = null) {
+fun NavRow(title: String, onClick: () -> Unit, subtitle: String? = null) {
     Row(
         Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -63,7 +63,7 @@ internal fun NavRow(title: String, onClick: () -> Unit, subtitle: String? = null
 /** กลุ่มชิปให้เลือก 1 ตัว (เช่น ปิด / อัตโนมัติ / 1 / 2 / 3) */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun <T> ChipChoice(title: String, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
+fun <T> ChipChoice(title: String, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
     Column {
         Text(title, color = Color.White, style = MaterialTheme.typography.bodyLarge)
         FlowRow(

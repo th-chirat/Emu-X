@@ -1,7 +1,7 @@
 # ALL Emulator
 
-แอพ Android รวม emulator 7 เครื่องในแอพเดียว — **PSP, PS1, PS2 (Beta), Game Boy, Game Boy Color, NES, NDS**
-UI สไตล์ **Liquid Glass** · รองรับ **Android 8.0 (API 26) ขึ้นไป** · มีโฆษณาทุก 3 ชม. + ซื้อลบโฆษณาตลอดชีพ
+แอพ Android รวม emulator 6 เครื่องในแอพเดียว — **PSP, PS1, Game Boy, Game Boy Color, Game Boy Advance, NES**
+UI สไตล์ **Liquid Glass** · รองรับ **Android 8.0 (API 26) ขึ้นไป** · มีโฆษณาทุก 1 ชม. + ซื้อลบโฆษณาตลอดชีพ
 
 > แอพนี้ **ไม่มีเกมหรือ BIOS แถมมา** ผู้ใช้ต้องใช้ไฟล์เกมที่ตัวเองเป็นเจ้าของโดยชอบด้วยกฎหมาย
 > ซอร์สโค้ดเปิดเผยภายใต้ **GPL-3.0** (เพราะใช้ emulator core ที่เป็น GPL)
@@ -43,7 +43,7 @@ feature/home/         หน้าแรก (การ์ดเครื่อ�
 feature/library/      หน้ารายการเกม + ปุ่ม + เลือกโฟลเดอร์
 feature/player/       หน้าเล่นเกม + จอยเสมือน + overlay + แก้ไขผังปุ่ม
 feature/settings/     ตั้งค่าแต่ละเครื่อง + ตั้งค่าแอพ + ซื้อลบโฆษณา
-monetization/         AdMob (ทุก 3 ชม.) + Play Billing
+monetization/         AdMob (ทุก 1 ชม.) + Play Billing
 scripts/              ดาวน์โหลด/คอมไพล์ core, สร้าง graph
 docs/                 เอกสารทั้งหมด
 graphify-out/         แผนที่โค้ด (knowledge graph) — เปิด graph.html ในเบราว์เซอร์
