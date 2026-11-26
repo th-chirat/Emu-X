@@ -1,32 +1,32 @@
-# Graph Report - ALL Emulator Project  (2026-11-26)
+# Graph Report - ALL Emulator Project  (2026-11-27)
 
 ## Corpus Check
-- 75 files · ~71,930 words
+- 75 files · ~71,967 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 29 file(s) not represented in the graph (top: .xml 11, .pro 9, (none) 4)
 - WARNING: 29 of 134 files seen (22%) have no supported extractor and are missing from this graph entirely. It may look complete while representing only part of the codebase.
 
 ## Summary
-- 1629 nodes · 3028 edges · 129 communities (84 shown, 45 thin omitted)
+- 1629 nodes · 3025 edges · 126 communities (82 shown, 44 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 31 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8ec50e0a`
+- Built from commit: `45f41d9d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - LayoutEditor.kt
 - GameDao
-- GameRepository
+- GameSystem
 - สถาปัตยกรรมของ ALL Emulator
 - AppSettingsScreen.kt
 - LibraryScreen.kt
 - GameEntity
 - PlayerOverlays.kt
 - GlassComponents.kt
-- PerformanceSettings
+- PerformanceMonitor
 - GameScanner.kt
 - GameActivity
 - BillingManager.kt
@@ -35,19 +35,16 @@
 - SettingsRepository
 - LiquidBackground.kt
 - retro_key
-- LayoutEditor.kt
+- LanguageSwitch.kt
 - Inject
 - Tutorial.kt
-- GameSystem
 - retro_language
 - GameFileResolver.kt
-- OverlaySettings
-- GlassScaffold.kt
+- tr
 - Theme.kt
-- retro_get_proc_address_interface
+- retro_core_option_v2_category
 - make-console-icons.py
 - retro_vfs_interface
-- SystemSettingsScreen.kt
 - build-cores.sh
 - ConsoleIcon
 - CLAUDE.md
@@ -68,7 +65,6 @@
 - retro_microphone_interface
 - retro_netpacket_callback
 - retro_led_interface
-- .feed
 - retro_hw_context_type
 - retro_game_info_ext
 - retro_location_callback
@@ -99,7 +95,7 @@
 - retro_message_type
 - retro_pixel_format
 - retro_sensor_interface
-- retro_set_environment
+- retro_core_options_v2_intl
 - v_opendir
 - retro_camera_buffer
 - SystemAssets.kt
@@ -108,11 +104,11 @@
 - retro_rumble_effect
 - retro_system_content_info_override
 - retro_audio_buffer_status_callback
+- v_mkdir
 - retro_controller_info
 - .cleanTitle
 - retro_core_option_value
 - retro_core_options_intl
-- retro_core_options_v2
 - retro_controller_description
 - retro_core_options_update_display_callback
 - retro_hw_render_context_negotiation_interface_type
@@ -120,7 +116,6 @@
 - retro_keyboard_callback
 - retro_memory_map
 - retro_message
-- retro_rumble_interface
 - retro_subsystem_memory_info
 - retro_system_av_info
 - retro_system_timing
@@ -157,7 +152,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (129 total, 45 thin omitted)
+## Communities (126 total, 44 thin omitted)
 
 ### Community 0 - "LayoutEditor.kt"
 Cohesion: 0.06
@@ -167,69 +162,65 @@ Nodes (24): ControllerLayouts, ButtonKind, ANALOG, DPAD, FACE, SHOULDER, SMALL, 
 Cohesion: 0.09
 Nodes (4): AppDatabase, GameDao, SystemCount, DataModule
 
+### Community 3 - "GameSystem"
+Cohesion: 0.10
+Nodes (9): GameRepository, GameSystem, GB, GBA, GBC, NES, PS1, PS2 (+1 more)
+
 ### Community 4 - "สถาปัตยกรรมของ ALL Emulator"
 Cohesion: 0.05
 Nodes (38): 1. ภาพรวมโมดูล, 2. ไฟล์สำคัญ — "อยากแก้ X ไปที่ไฟล์ไหน", 3. เส้นทางตอนกดเล่นเกม, 4. การเก็บข้อมูล, 5. Liquid Glass ทำงานยังไง, 6. ข้อจำกัดที่ควรรู้, สถาปัตยกรรมของ Emu-X, Emulator cores ที่ใช้ (+30 more)
 
 ### Community 5 - "AppSettingsScreen.kt"
-Cohesion: 0.15
-Nodes (5): AppSettingsScreen(), AppSettingsViewModel, Credit, findActivity(), openUrl()
+Cohesion: 0.16
+Nodes (6): NavRow(), AppSettingsScreen(), AppSettingsViewModel, Credit, findActivity(), openUrl()
 
 ### Community 6 - "LibraryScreen.kt"
-Cohesion: 0.09
-Nodes (8): BiosGuideDialog(), tr(), EmptyState(), EmptyStateContent(), FoldersDialog(), formatSize(), GameRow(), LibraryScreen()
+Cohesion: 0.12
+Nodes (6): EmptyState(), EmptyStateContent(), FoldersDialog(), formatSize(), GameRow(), LibraryScreen()
 
 ### Community 7 - "GameEntity"
-Cohesion: 0.17
+Cohesion: 0.16
 Nodes (5): PlayerState, Error, Loading, Ready, PlayerViewModel
 
 ### Community 9 - "GlassComponents.kt"
 Cohesion: 0.21
 Nodes (9): BetaBadge(), GlassButton(), GlassCard(), GlassFab(), GlassIconButton(), GlassSection(), GlassTopBar(), pressScale() (+1 more)
 
-### Community 10 - "PerformanceSettings"
-Cohesion: 0.20
-Nodes (5): AutoTuner, Step, CoreOptions, PerformanceSettings, CoreOptionsTest
-
 ### Community 14 - "AdManager.kt"
 Cohesion: 0.13
 Nodes (3): AdManager, FullScreenContentCallback, InterstitialAdLoadCallback
 
 ### Community 15 - "GameEntity"
-Cohesion: 0.13
+Cohesion: 0.14
 Nodes (4): FolderEntity, GameEntity, LibraryUiState, LibraryViewModel
 
 ### Community 18 - "retro_key"
 Cohesion: 0.01
 Nodes (163): retro_key, RETROK_0, RETROK_1, RETROK_2, RETROK_3, RETROK_4, RETROK_5, RETROK_6 (+155 more)
 
-### Community 19 - "LayoutEditor.kt"
-Cohesion: 0.08
-Nodes (3): Label(), LanguageSwitch(), GlassColors
-
 ### Community 21 - "Tutorial.kt"
-Cohesion: 0.16
-Nodes (4): PageIcon(), pages(), TutorialOverlay(), TutorialPage
-
-### Community 22 - "GameSystem"
-Cohesion: 0.14
-Nodes (8): GameSystem, GB, GBA, GBC, NES, PS1, PS2, PSP
+Cohesion: 0.19
+Nodes (5): PageIcon(), pages(), TutorialOverlay(), TutorialPage, TutorialViewModel
 
 ### Community 23 - "retro_language"
 Cohesion: 0.05
 Nodes (38): retro_language, RETRO_LANGUAGE_ARABIC, RETRO_LANGUAGE_ASTURIAN, RETRO_LANGUAGE_BELARUSIAN, RETRO_LANGUAGE_BRITISH_ENGLISH, RETRO_LANGUAGE_CATALAN, RETRO_LANGUAGE_CATALAN_VALENCIA, RETRO_LANGUAGE_CHINESE_SIMPLIFIED (+30 more)
 
 ### Community 24 - "GameFileResolver.kt"
-Cohesion: 0.16
+Cohesion: 0.17
 Nodes (8): GameFileResolver, LoadStrategy, COPY, FD_PATH, VFS, ResolvedGame, Path, Virtual
 
-### Community 25 - "OverlaySettings"
-Cohesion: 0.12
-Nodes (20): AspectMode, FULL, ORIGINAL, STANDARD, WIDE, OverlayCorner, BOTTOM_END, BOTTOM_START (+12 more)
+### Community 25 - "tr"
+Cohesion: 0.05
+Nodes (35): BiosGuideDialog(), ChipChoice(), ScreenOptions(), SwitchRow(), AutoTuner, Step, CoreOptions, tr() (+27 more)
 
 ### Community 27 - "Theme.kt"
-Cohesion: 0.07
-Nodes (10): AppNavHost(), AppSettingsRoute, HomeRoute, LayoutEditorRoute, LibraryRoute, SystemSettingsRoute, AllEmulatorTheme(), colorSchemeOf() (+2 more)
+Cohesion: 0.08
+Nodes (9): AppNavHost(), AppSettingsRoute, HomeRoute, LayoutEditorRoute, LibraryRoute, SystemSettingsRoute, AllEmulatorTheme(), colorSchemeOf() (+1 more)
+
+### Community 28 - "retro_core_option_v2_category"
+Cohesion: 0.50
+Nodes (4): retro_core_option_v2_category, desc, info, key
 
 ### Community 29 - "make-console-icons.py"
 Cohesion: 0.22
@@ -239,33 +230,29 @@ Nodes (5): cut_bg(), erase(), load(), near(), save()
 Cohesion: 0.06
 Nodes (15): retro_vfs_interface, close, dirent_get_name, dirent_is_dir, flush, get_path, open, read (+7 more)
 
-### Community 31 - "SystemSettingsScreen.kt"
-Cohesion: 0.20
-Nodes (8): ChipChoice(), NavRow(), ScreenOptions(), SwitchRow(), InGameSettings(), Section(), SystemSettingsScreen(), SystemSettingsViewModel
-
 ### Community 32 - "build-cores.sh"
 Cohesion: 0.80
 Nodes (4): build_cmake(), build_ndk_build(), install_so(), build-cores.sh script
 
 ### Community 51 - "PerformanceMonitor"
-Cohesion: 0.09
-Nodes (6): CoverStore, HomeUiState, HomeViewModel, SystemCardUi, PerformanceMonitor, PerfSnapshot
+Cohesion: 0.13
+Nodes (7): CoverStore, HomeScreen(), RecentRow(), SystemCard(), HomeUiState, HomeViewModel, SystemCardUi
 
 ### Community 53 - "AppLanguage"
-Cohesion: 0.23
+Cohesion: 0.21
 Nodes (4): AppLanguage, EN, TH, L10n
 
 ### Community 55 - "ThemeMode"
-Cohesion: 0.21
+Cohesion: 0.23
 Nodes (5): ThemeMode, DARK, LIGHT, SYSTEM, ThemePrefs
 
 ### Community 56 - "HomeScreen.kt"
-Cohesion: 0.14
-Nodes (3): HomeScreen(), RecentRow(), SystemCard()
+Cohesion: 0.11
+Nodes (3): GlassScaffold(), GlassSearchField(), GlassColors
 
 ### Community 57 - "libretro.h"
-Cohesion: 0.07
-Nodes (24): retro_core_option_display, key, visible, retro_core_option_v2_category, desc, info, key, retro_core_options_v2_intl (+16 more)
+Cohesion: 0.06
+Nodes (24): retro_core_option_display, key, visible, retro_core_options_v2, categories, definitions, retro_frame_time_callback, callback (+16 more)
 
 ### Community 58 - "retro_disk_control_ext_callback"
 Cohesion: 0.08
@@ -273,7 +260,7 @@ Nodes (19): retro_disk_control_callback, add_image_index, get_eject_state, get_i
 
 ### Community 59 - "armsx2_shim.c"
 Cohesion: 0.12
-Nodes (5): v_dirent_is_dir(), v_mkdir(), v_stat(), mkdir, stat
+Nodes (5): retro_set_environment(), sym(), v_dirent_is_dir(), v_stat(), stat
 
 ### Community 60 - "retro_hw_render_callback"
 Cohesion: 0.12
@@ -407,6 +394,10 @@ Nodes (5): retro_pixel_format, RETRO_PIXEL_FORMAT_0RGB1555, RETRO_PIXEL_FORMAT_R
 Cohesion: 0.40
 Nodes (3): retro_sensor_interface, get_sensor_input, set_sensor_state
 
+### Community 97 - "retro_core_options_v2_intl"
+Cohesion: 0.67
+Nodes (3): retro_core_options_v2_intl, local, us
+
 ### Community 98 - "v_opendir"
 Cohesion: 0.50
 Nodes (4): v_closedir(), v_opendir(), closedir, opendir
@@ -442,10 +433,6 @@ Nodes (3): retro_core_option_value, label, value
 ### Community 110 - "retro_core_options_intl"
 Cohesion: 0.67
 Nodes (3): retro_core_options_intl, local, us
-
-### Community 112 - "retro_core_options_v2"
-Cohesion: 0.67
-Nodes (3): retro_core_options_v2, categories, definitions
 
 ### Community 113 - "retro_controller_description"
 Cohesion: 0.67
@@ -497,23 +484,23 @@ Nodes (3): retro_throttle_state, mode, rate
 
 ## Knowledge Gaps
 - **540 isolated node(s):** `PSP`, `PS1`, `PS2`, `GB`, `GBC` (+535 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 867 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **45 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 868 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **44 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `retro_key` connect `retro_key` to `libretro.h`?**
-  _High betweenness centrality (0.184) - this node is a cross-community bridge._
+  _High betweenness centrality (0.185) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `tr()` (e.g. with `.nextLighter()` and `.resolutionChoices()`) actually correct?**
   _`tr()` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `PSP`, `PS1`, `PS2` to the rest of the system?**
   _540 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `LayoutEditor.kt` be split into smaller, more focused modules?**
-  _Cohesion score 0.061057692307692306 - nodes in this community are weakly interconnected._
-- **Why does `tr()` connect `LibraryScreen.kt` to `LayoutEditor.kt`, `GameActivity.kt`, `AppSettingsScreen.kt`, `GameEntity`, `PlayerOverlays.kt`, `PerformanceSettings`, `GameActivity`, `BillingManager.kt`, `GameEntity`, `LayoutEditor.kt`, `AppLanguage`, `Tutorial.kt`, `HomeScreen.kt`, `GameFileResolver.kt`, `SystemSettingsScreen.kt`?**
-  _High betweenness centrality (0.168) - this node is a cross-community bridge._
+  _Cohesion score 0.062003968253968256 - nodes in this community are weakly interconnected._
+- **Why does `tr()` connect `tr` to `LayoutEditor.kt`, `GameActivity.kt`, `AppSettingsScreen.kt`, `LibraryScreen.kt`, `GameEntity`, `PlayerOverlays.kt`, `GameActivity`, `BillingManager.kt`, `GameEntity`, `PerformanceMonitor`, `Tutorial.kt`, `AppLanguage`, `HomeScreen.kt`, `GameFileResolver.kt`, `LayoutEditor.kt`, `SettingsWidgets.kt`?**
+  _High betweenness centrality (0.178) - this node is a cross-community bridge._
 - **Should `GameActivity.kt` be split into smaller, more focused modules?**
   _Cohesion score 0.06666666666666667 - nodes in this community are weakly interconnected._
-- **Why does `SettingsRepository` connect `SettingsRepository` to `LayoutEditor.kt`, `AppSettingsScreen.kt`, `GameEntity`, `BillingManager.kt`, `AdManager.kt`, `LayoutEditor.kt`, `Tutorial.kt`, `AppLanguage`, `AllEmulatorApp.kt`, `ThemeMode`, `Theme.kt`, `SystemSettingsScreen.kt`?**
-  _High betweenness centrality (0.090) - this node is a cross-community bridge._
+- **Why does `SettingsRepository` connect `SettingsRepository` to `LayoutEditor.kt`, `AppSettingsScreen.kt`, `GameEntity`, `BillingManager.kt`, `AdManager.kt`, `Tutorial.kt`, `AppLanguage`, `AllEmulatorApp.kt`, `ThemeMode`, `tr`, `LayoutEditor.kt`?**
+  _High betweenness centrality (0.092) - this node is a cross-community bridge._

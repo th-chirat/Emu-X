@@ -10,6 +10,7 @@
  *   - สัดส่วนภาพ (ตามเกม / เต็มจอ / 16:9 / 4:3), ความชัด (480p / 720p / 1080p), ลดรอยหยัก
  *   - ฟิลเตอร์ภาพ (ปกติ / คมชัด / LCD / CRT)
  *   - ข้อมูลบนจอ: FPS / CPU / RAM / อุณหภูมิแบต
+ *   - สั่นเมื่อกดปุ่ม (ปิดเป็นค่าเริ่มต้น — ตั้งได้ที่นี่ที่เดียว)
  * ทุกค่าถูกบันทึกเป็นค่าตั้งค่าของเครื่องเกมนั้นด้วย
  * -----------------------------------------------------------------------------
  */
@@ -39,6 +40,8 @@ fun InGameSettings(
     overlay: OverlaySettings,
     onPerformance: (PerformanceSettings) -> Unit,
     onOverlay: (OverlaySettings) -> Unit,
+    haptics: Boolean,
+    onHaptics: (Boolean) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Section(tr("ความลื่นของเกม", "Game performance"))
@@ -68,6 +71,14 @@ fun InGameSettings(
         SwitchRow("CPU", overlay.showCpu, { onOverlay(overlay.copy(showCpu = it)) })
         SwitchRow("RAM", overlay.showRam, { onOverlay(overlay.copy(showRam = it)) })
         SwitchRow(tr("อุณหภูมิแบตเตอรี่", "Battery temperature"), overlay.showBatteryTemp, { onOverlay(overlay.copy(showBatteryTemp = it)) })
+
+        Section(tr("ปุ่มควบคุม", "Controls"))
+        SwitchRow(
+            tr("สั่นเมื่อกดปุ่มจอย", "Vibrate on button press"),
+            haptics,
+            onHaptics,
+            tr("ใช้กับทุกเครื่องเกม", "Applies to every console"),
+        )
     }
 }
 

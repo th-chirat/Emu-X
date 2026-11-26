@@ -211,8 +211,8 @@ class GameActivity : ComponentActivity() {
         // ค่าที่ปรับได้ระหว่างเล่น (เมนู → ตั้งค่า)
         var performance by remember { mutableStateOf(s.performance) }
         var overlay by remember { mutableStateOf(s.overlay) }
-        // สั่นเมื่อกดปุ่ม: ตั้งในหน้าตั้งค่าแอพที่เดียว (ไม่ซ้ำในเมนูเกมแล้ว)
-        val haptics = s.haptics
+        // สั่นเมื่อกดปุ่ม: ปิดเป็นค่าเริ่มต้น เปิด/ปิดได้ในเมนูเกม → ตั้งค่า (มีที่นี่ที่เดียว)
+        var haptics by remember { mutableStateOf(s.haptics) }
         var error by remember { mutableStateOf<String?>(null) }
 
         // ---- ฟังเหตุการณ์จาก emulator: เฟรมวาดเสร็จ (นับ FPS) และ error ----
@@ -414,6 +414,8 @@ class GameActivity : ComponentActivity() {
                                 viewModel.savePerformance(new)
                             },
                             onOverlay = { overlay = it; viewModel.saveOverlay(it) },
+                            haptics = haptics,
+                            onHaptics = { haptics = it; viewModel.saveHaptics(it) },
                         )
                     },
                 )

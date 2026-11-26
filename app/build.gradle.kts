@@ -40,7 +40,7 @@ android {
         applicationId = "com.allemulator.app"
         minSdk = 26 // Android 8.0 ตามบรีฟ
         targetSdk = 36
-        versionCode = 2 // เพิ่มทุกครั้งที่อัปโหลดขึ้น Play Console
+        versionCode = 3 // เพิ่มทุกครั้งที่อัปโหลดขึ้น Play Console
         versionName = "1.0.0"
 
         manifestPlaceholders["admobAppId"] = admobAppId

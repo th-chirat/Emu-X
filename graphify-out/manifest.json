@@ -1,8 +1,8 @@
 {
   "app/build.gradle.kts": {
-    "mtime": 1795711660.8632896,
-    "seen": 1795712124.0793586,
-    "ast_hash": "ac6bd888e73f947a4fa6d43141222e5c",
+    "mtime": 1795712545.2429185,
+    "seen": 1795712708.8238227,
+    "ast_hash": "2b2efa00929b44f880d6bfa650ab250b",
     "semantic_hash": ""
   },
   "app/src/main/java/com/allemulator/app/AllEmulatorApp.kt": {
@@ -42,9 +42,9 @@
     "semantic_hash": ""
   },
   "core/data/src/main/java/com/allemulator/core/data/SettingsRepository.kt": {
-    "mtime": 1795664950.5636055,
-    "seen": 1795665441.4839993,
-    "ast_hash": "f617d08f8117910b99c35e56d39c26de",
+    "mtime": 1795712545.2404068,
+    "seen": 1795712708.8238227,
+    "ast_hash": "8494f4ee8bcaffdee701e445daa28008",
     "semantic_hash": ""
   },
   "core/data/src/main/java/com/allemulator/core/data/db/AppDatabase.kt": {
@@ -210,9 +210,9 @@
     "semantic_hash": ""
   },
   "feature/player/src/main/java/com/allemulator/feature/player/GameActivity.kt": {
-    "mtime": 1795674228.8715813,
-    "seen": 1795674611.3316455,
-    "ast_hash": "d04f46e244fb81d8194539069f1b828d",
+    "mtime": 1795712545.2404068,
+    "seen": 1795712708.8238227,
+    "ast_hash": "2d41749429da8261ab86ab66a2842040",
     "semantic_hash": ""
   },
   "feature/player/src/main/java/com/allemulator/feature/player/GameFileResolver.kt": {
@@ -234,9 +234,9 @@
     "semantic_hash": ""
   },
   "feature/player/src/main/java/com/allemulator/feature/player/PlayerViewModel.kt": {
-    "mtime": 1795669271.5998473,
-    "seen": 1795670839.859549,
-    "ast_hash": "013fdc1048cc855945829a27a04f30d8",
+    "mtime": 1795712545.2404068,
+    "seen": 1795712708.8238227,
+    "ast_hash": "914ed7bccf80cbde50da16366efae4cf",
     "semantic_hash": ""
   },
   "feature/player/src/main/java/com/allemulator/feature/player/SystemAssets.kt": {
@@ -264,9 +264,9 @@
     "semantic_hash": ""
   },
   "feature/settings/src/main/java/com/allemulator/feature/settings/AppSettingsScreen.kt": {
-    "mtime": 1795673549.1882243,
-    "seen": 1795674611.3316455,
-    "ast_hash": "9dfb89b3662c041729c9cd87750e8398",
+    "mtime": 1795712545.2419124,
+    "seen": 1795712708.8238227,
+    "ast_hash": "68a326f660748619c5d6f5fa4348178d",
     "semantic_hash": ""
   },
   "feature/settings/src/main/java/com/allemulator/feature/settings/SystemSettingsScreen.kt": {
@@ -360,9 +360,9 @@
     "semantic_hash": ""
   },
   "feature/player/src/main/java/com/allemulator/feature/player/InGameSettings.kt": {
-    "mtime": 1795673441.8367007,
-    "seen": 1795674611.3316455,
-    "ast_hash": "77766e4c5023533c9aef921e9a5f912a",
+    "mtime": 1795712545.2419124,
+    "seen": 1795712708.8238227,
+    "ast_hash": "320cf480ba89a2174314d5565c10852a",
     "semantic_hash": ""
   },
   "scripts/make-console-icons.py": {

@@ -94,7 +94,8 @@ class SettingsRepository @Inject constructor(
     // ---------------- ทั่วไป ----------------
 
     /** สั่นเมื่อกดปุ่มจอยเสมือน */
-    val haptics: Flow<Boolean> = store.data.map { it[KEY_HAPTICS] ?: true }
+    // ค่าเริ่มต้น = ปิด (ผู้ใช้เปิดเองได้ในเมนูตั้งค่าระหว่างเล่นเกม)
+    val haptics: Flow<Boolean> = store.data.map { it[KEY_HAPTICS] ?: false }
     suspend fun setHaptics(on: Boolean) { store.edit { it[KEY_HAPTICS] = on } }
 
     /** ภาษาของแอพ (null = ยังไม่เคยเลือก → ใช้ตามภาษาเครื่อง) */

@@ -4,7 +4,8 @@
  * ตั้งค่าทั่วไปของแอพ (เปิดจากเฟืองหน้าแรก)
  *
  *   ลบโฆษณาตลอดชีพ : ปุ่มซื้อ (แสดงราคาจาก Play Store) + กู้คืนการซื้อ
- *   ทั่วไป          : ภาษา (สวิตช์ TH/EN), ธีม (ตามระบบ/สว่าง/มืด), สั่นเมื่อกดปุ่ม, ดูวิธีใช้งาน
+ *   ทั่วไป          : ภาษา (สวิตช์ TH/EN), ธีม (ตามระบบ/สว่าง/มืด), ดูวิธีใช้งาน
+ *                    (สั่นเมื่อกดปุ่ม ย้ายไปอยู่ในเมนูตั้งค่าระหว่างเล่นเกม)
  *   เกี่ยวกับ        : เวอร์ชัน, นโยบายความเป็นส่วนตัว, ซอร์สโค้ด, เครดิตและ license ของ emulator
  * -----------------------------------------------------------------------------
  */
@@ -76,8 +77,6 @@ class AppSettingsViewModel @Inject constructor(
     private val settings: SettingsRepository,
 ) : ViewModel() {
     val isPremium = billing.isPremium.stateIn(viewModelScope, SharingStarted.Eagerly, false)
-    val haptics = settings.haptics.stateIn(viewModelScope, SharingStarted.Eagerly, true)
-    fun setHaptics(on: Boolean) = viewModelScope.launch { settings.setHaptics(on) }
 
     /** สวิตช์ภาษา (ย้ายมาจากหน้าแรก — บรีฟรอบ 4 ข้อ 2): เปลี่ยนทันทีแล้วค่อยบันทึก */
     fun setThai(thai: Boolean) {
@@ -133,7 +132,6 @@ fun AppSettingsScreen(
     val premium by viewModel.isPremium.collectAsStateWithLifecycle()
     val price by viewModel.billing.price.collectAsStateWithLifecycle()
     val message by viewModel.billing.messages.collectAsStateWithLifecycle()
-    val haptics by viewModel.haptics.collectAsStateWithLifecycle()
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     var showLicenses by remember { mutableStateOf(false) }
 
@@ -182,7 +180,6 @@ fun AppSettingsScreen(
                         ThemeMode.entries.map { it to it.title },
                         themeMode,
                     ) { viewModel.setThemeMode(it) }
-                    SwitchRow(tr("สั่นเมื่อกดปุ่มจอย", "Vibrate on button press"), haptics, { viewModel.setHaptics(it) })
                     NavRow(tr("ดูวิธีใช้งานอีกครั้ง", "Show tutorial again"), { viewModel.showTutorial(); onBack() })
                 }
 

@@ -160,6 +160,9 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch { settings.setOverlay(r.system, value) }
     }
 
+    /** สั่นเมื่อกดปุ่มจอยบนจอ (ใช้กับทุกเครื่องเกม) */
+    fun saveHaptics(on: Boolean) = viewModelScope.launch { settings.setHaptics(on) }
+
     private fun ready() = _state.value as? PlayerState.Ready
 
     override fun onCleared() {
