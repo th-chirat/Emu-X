@@ -6,7 +6,7 @@
 //      (ไม่ใส่ = ใช้รหัสทดสอบของ Google อัตโนมัติ)
 //   2) keystore.properties               → ข้อมูลกุญแจเซ็นแอพ (ห้ามอัปโหลดขึ้น GitHub)
 //   3) versionCode / versionName         → เพิ่มทุกครั้งที่อัปโหลดเวอร์ชันใหม่
-//   4) PRIVACY_URL / SOURCE_URL          → ลิงก์ GitHub ของคุณ
+//   4) PRIVACY_URL (Google Sites) / SOURCE_URL (GitHub)
 // =============================================================================
 import java.util.Properties
 
@@ -43,7 +43,7 @@ android {
         manifestPlaceholders["admobAppId"] = admobAppId
         manifestPlaceholders["admobInterstitialId"] = admobInterstitialId
 
-        buildConfigField("String", "PRIVACY_URL", "\"https://github.com/th-chirat/Emu-X/blob/main/docs/PRIVACY_POLICY.md\"")
+        buildConfigField("String", "PRIVACY_URL", "\"https://sites.google.com/view/emu-x-privacy-policy\"")
         buildConfigField("String", "SOURCE_URL", "\"https://github.com/th-chirat/Emu-X\"")
     }
 

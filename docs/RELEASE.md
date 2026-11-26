@@ -42,7 +42,7 @@
 
 1. Create app → ชื่อ **Emu-X** → App (ไม่ใช่ Game ก็ได้ แต่แนะนำ **Game**) → Free
 2. **App content** (ต้องกรอกครบก่อนปล่อย):
-   - Privacy policy → ลิงก์ไปที่ `docs/PRIVACY_POLICY.md` บน GitHub
+   - Privacy policy → https://sites.google.com/view/emu-x-privacy-policy (Google Sites — เนื้อหาเดียวกับ `docs/PRIVACY_POLICY.md` ถ้าแก้ต้องแก้ทั้งสองที่)
    - Ads → **Yes, my app contains ads**
    - Data safety → เก็บ: Device or other IDs (โฆษณา AdMob), Purchase history (Play Billing) · ไม่ขาย/ไม่แชร์ข้อมูลอื่น
    - Content rating → ทำแบบสอบถาม (แอพ emulator ทั่วไปได้ระดับ Everyone/3+)
