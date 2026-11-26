@@ -76,9 +76,9 @@ class AutoTuner(
 
     private companion object {
         /** เครื่องที่ปรับความละเอียดได้ */
-        val SCALABLE = setOf(GameSystem.PSP, GameSystem.PS1)
+        val SCALABLE = setOf(GameSystem.PSP, GameSystem.PS1, GameSystem.PS2)
         /** เครื่องที่มีทางลัดเร่งความเร็ว (ดู CoreOptions) */
-        val HACKABLE = setOf(GameSystem.PSP)
+        val HACKABLE = setOf(GameSystem.PSP, GameSystem.PS2)
         /** เครื่องที่ข้ามเฟรมได้ */
         val SKIPPABLE = setOf(GameSystem.PSP, GameSystem.PS1, GameSystem.GBA)
     }

@@ -37,6 +37,7 @@ fun ConsoleIcon(system: GameSystem, modifier: Modifier = Modifier) {
     val image = when (system) {
         GameSystem.PSP -> R.drawable.console_psp
         GameSystem.PS1 -> R.drawable.console_ps1
+        GameSystem.PS2 -> R.drawable.console_ps2
         GameSystem.GB -> R.drawable.console_gb
         GameSystem.GBC -> R.drawable.console_gbc
         GameSystem.NES -> R.drawable.console_nes
@@ -55,7 +56,7 @@ fun ConsoleIcon(system: GameSystem, modifier: Modifier = Modifier) {
         val p = Painter(this, u, ox, oy, start, end)
         when (system) {
             GameSystem.PSP -> p.psp()
-            GameSystem.PS1 -> p.discConsole()
+            GameSystem.PS1, GameSystem.PS2 -> p.discConsole()
             GameSystem.GB -> p.handheld(color = false)
             GameSystem.GBC -> p.handheld(color = true)
             GameSystem.NES -> p.boxConsole()

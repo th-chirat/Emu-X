@@ -17,6 +17,12 @@
  */
 package com.allemulator.feature.player
 
+import androidx.compose.foundation.layout.height
+import kotlin.math.roundToInt
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.composed
+import com.allemulator.core.emulation.AspectMode
 import com.allemulator.core.designsystem.glass.glass
 import kotlin.coroutines.resume
 import kotlinx.coroutines.withTimeoutOrNull
@@ -291,12 +297,20 @@ class GameActivity : ComponentActivity() {
                 landscape -> 1f
                 else -> 0.5f
             }
+            // สัดส่วนภาพที่ผู้ใช้เลือก (ตามเกม / เต็มจอ / 16:9 / 4:3) — บรีฟรอบ 5 ข้อ 3
+            val mode = performance.aspect
+            val stretch = mode != AspectMode.ORIGINAL
+            val contentAspect = contentAspect(s.system, performance)
             if (body != null) {
-                // เครื่อง Nintendo: จอเกมขนาดพอดีสัดส่วนจอจริง อยู่ในกรอบจอ บนบอดี้สีของเครื่อง
+                // เครื่อง Nintendo: จอเกมอยู่ในกรอบจอ บนบอดี้สีของเครื่อง
                 BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding()) {
-                    val aspect = screenAspect(s.system)
                     val areaW = maxWidth - 24.dp
                     val areaH = maxHeight * gameHeight - 24.dp
+                    val aspect = when (mode) {
+                        AspectMode.ORIGINAL -> screenAspect(s.system)
+                        AspectMode.FULL -> areaW / areaH
+                        else -> mode.ratio!!
+                    }
                     val w = minOf(areaW, areaH * aspect)
                     Box(
                         Modifier
@@ -307,12 +321,27 @@ class GameActivity : ComponentActivity() {
                             .background(Color(0xFF15151C)) // กรอบจอ (สีเข้มเหมือนกระจกหน้าจอ)
                             .padding(8.dp),
                     ) {
-                        AndroidView(factory = { view }, modifier = Modifier.fillMaxSize())
+                        AndroidView(factory = { view }, modifier = Modifier.fillMaxSize().stretchBuffer(view, stretch, contentAspect))
                     }
                 }
             } else {
-                Column(Modifier.fillMaxSize().safeDrawingPadding()) {
-                    AndroidView(factory = { view }, modifier = Modifier.fillMaxWidth().fillMaxHeight(gameHeight))
+                BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding()) {
+                    val areaW = maxWidth
+                    val areaH = maxHeight * gameHeight
+                    val target = when (mode) {
+                        AspectMode.ORIGINAL -> null
+                        AspectMode.FULL -> areaW / areaH
+                        else -> mode.ratio
+                    }
+                    Box(Modifier.fillMaxWidth().height(areaH), contentAlignment = Alignment.Center) {
+                        val viewSize = if (target == null) {
+                            Modifier.fillMaxSize()
+                        } else {
+                            val w = minOf(areaW, areaH * target)
+                            Modifier.size(w, w / target)
+                        }
+                        AndroidView(factory = { view }, modifier = viewSize.stretchBuffer(view, stretch, contentAspect))
+                    }
                 }
             }
 
@@ -376,6 +405,7 @@ class GameActivity : ComponentActivity() {
                     },
                     settingsContent = {
                         InGameSettings(
+                            system = s.system,
                             performance = performance,
                             overlay = overlay,
                             onPerformance = { new ->
@@ -438,6 +468,36 @@ class GameActivity : ComponentActivity() {
     }
 
     /** สัดส่วนจอ (กว้าง/สูง) ของแต่ละเครื่อง — ใช้ทำกรอบจอให้พอดีภาพ ไม่มีแถบดำ */
+    /**
+     * สัดส่วนภาพที่ core วาดออกมาจริง (ใช้คำนวณขนาด buffer ตอนยืดภาพ)
+     * (PS2 ส่งภาพ 4:3 เสมอ แม้ตั้ง 16:9 — แอพยืดเอง ดู CoreOptions)
+     */
+    private fun contentAspect(system: GameSystem, p: PerformanceSettings): Float = when (system) {
+        GameSystem.PSP -> 480f / 272f
+        GameSystem.PS2 -> 4f / 3f
+        else -> screenAspect(system)
+    }
+
+    /**
+     * ยืดภาพเกมให้เต็มกรอบตามสัดส่วนที่เลือก
+     *
+     * LibretroDroid ใส่ขอบดำให้ภาพคงสัดส่วนเดิมของเกมเสมอ (ไม่มีคำสั่งให้ยืด)
+     * วิธีแก้: ให้ GL วาดลง buffer ที่มีสัดส่วนเท่าภาพเกมพอดี (เลยไม่มีขอบดำ)
+     * แล้วให้ระบบ Android ยืด buffer นั้นให้เต็มขนาดกรอบเอง (setFixedSize) — ไม่ต้องแก้ LibretroDroid
+     */
+    private fun Modifier.stretchBuffer(view: GLRetroView, stretch: Boolean, contentAspect: Float): Modifier = composed {
+        var size by remember { mutableStateOf(IntSize.Zero) }
+        LaunchedEffect(size, stretch, contentAspect) {
+            if (size.height <= 0) return@LaunchedEffect
+            if (stretch) {
+                view.holder.setFixedSize((size.height * contentAspect).roundToInt().coerceAtLeast(1), size.height)
+            } else {
+                view.holder.setSizeFromLayout()
+            }
+        }
+        onSizeChanged { size = it }
+    }
+
     private fun screenAspect(system: GameSystem): Float = when (system) {
         GameSystem.GB, GameSystem.GBC -> 160f / 144f
         GameSystem.GBA -> 240f / 160f

@@ -51,6 +51,22 @@ enum class ScreenShader(private val th: String, private val en: String) {
 }
 
 /**
+ * สัดส่วนภาพ (บรีฟรอบ 5 ข้อ 3)
+ *   ORIGINAL = ตามที่เกมกำหนด (มีขอบดำได้), FULL = ยืดเต็มพื้นที่จอเกม
+ *   WIDE = 16:9, STANDARD = 4:3
+ */
+@Serializable
+enum class AspectMode(private val th: String, private val en: String, val ratio: Float?) {
+    ORIGINAL("ตามเกม", "Original", null),
+    FULL("เต็มจอ", "Full screen", null),
+    WIDE("16:9", "16:9", 16f / 9f),
+    STANDARD("4:3", "4:3", 4f / 3f),
+    ;
+
+    val title: String get() = tr(th, en)
+}
+
+/**
  * ค่าตั้งค่าประสิทธิภาพของเครื่องเกมหนึ่ง (ผู้ใช้ปรับในหน้า Settings)
  *
  * @property preset           โหมดความลื่นหลัก
@@ -72,6 +88,10 @@ data class PerformanceSettings(
     val shader: ScreenShader = ScreenShader.NONE,
     val speedHacks: Boolean = false,
     val autoTune: Boolean = true,
+    /** สัดส่วนภาพ */
+    val aspect: AspectMode = AspectMode.ORIGINAL,
+    /** ลดรอยหยักขอบภาพ (ตอนนี้มีผลกับ PS2 — FXAA ของ core) */
+    val antiAliasing: Boolean = false,
 )
 
 /** มุมที่จะวาง overlay FPS/CPU */

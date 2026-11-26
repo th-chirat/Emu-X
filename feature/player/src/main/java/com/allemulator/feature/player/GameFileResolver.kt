@@ -76,7 +76,7 @@ class GameFileResolver(private val context: Context) {
 
 
             // เกมแผ่น → ลองไฟล์เสมือนก่อน (ไม่เปลืองพื้นที่)
-            GameSystem.PS1, GameSystem.PSP -> ResolvedGame.Virtual(
+            GameSystem.PS1, GameSystem.PSP, GameSystem.PS2 -> ResolvedGame.Virtual(
                 files.mapNotNull { (name, u) -> resolver.openFileDescriptor(u, "r")?.let { VirtualFile(name, it) } },
             )
         }

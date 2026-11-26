@@ -29,6 +29,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.allemulator.core.designsystem.theme.GlassColors
+import com.allemulator.core.emulation.AspectMode
+import com.allemulator.core.emulation.CoreOptions
+import com.allemulator.core.emulation.GameSystem
+import com.allemulator.core.emulation.PerformanceSettings
+import com.allemulator.core.emulation.tr
 
 /** แถว: หัวข้อ + คำอธิบาย + สวิตช์ */
 @Composable
@@ -84,6 +89,37 @@ fun <T> ChipChoice(title: String, options: List<Pair<T, String>>, selected: T, o
                         .padding(horizontal = 14.dp, vertical = 8.dp),
                 )
             }
+        }
+    }
+}
+
+/**
+ * ตัวเลือก "ภาพ" ที่ใช้ทั้งหน้าตั้งค่าเครื่อง และหน้าตั้งค่าระหว่างเล่น (บรีฟรอบ 5 ข้อ 3)
+ *   - สัดส่วนภาพ: ตามเกม / เต็มจอ / 16:9 / 4:3 (ทุกเครื่อง)
+ *   - ความชัด: 480p / 720p / 1080p (เฉพาะเครื่องที่ปรับได้ — ดู CoreOptions.resolutionChoices)
+ *   - ลดรอยหยัก (เฉพาะเครื่องที่ core รองรับ)
+ */
+@Composable
+fun ScreenOptions(system: GameSystem, perf: PerformanceSettings, onChange: (PerformanceSettings) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        ChipChoice(
+            tr("สัดส่วนภาพ", "Aspect ratio"),
+            AspectMode.entries.map { it to it.title },
+            perf.aspect,
+        ) { onChange(perf.copy(aspect = it)) }
+        val resolutions = CoreOptions.resolutionChoices(system)
+        if (resolutions.isNotEmpty()) {
+            ChipChoice(tr("ความชัดของภาพ", "Resolution"), resolutions, perf.resolutionScale) {
+                onChange(perf.copy(resolutionScale = it))
+            }
+        }
+        if (CoreOptions.supportsAntiAliasing(system)) {
+            SwitchRow(
+                tr("ลดรอยหยักขอบภาพ (Anti-aliasing)", "Anti-aliasing"),
+                perf.antiAliasing,
+                { onChange(perf.copy(antiAliasing = it)) },
+                tr("ขอบวัตถุเนียนขึ้น กินเครื่องเพิ่มเล็กน้อย", "Smoother edges, costs a little performance"),
+            )
         }
     }
 }

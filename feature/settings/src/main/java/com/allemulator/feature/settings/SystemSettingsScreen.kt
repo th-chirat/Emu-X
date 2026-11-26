@@ -6,15 +6,21 @@
  *   ปุ่มควบคุม : แก้ไขตำแหน่ง/ขนาดปุ่ม, รีเซ็ต
  *   ความลื่น   : โหมด ประหยัดแบต / สมดุล / ภาพสวยสุด + ตั้งค่าขั้นสูง
  *   Overlay    : เลือกโชว์ FPS / CPU / RAM / อุณหภูมิ + มุมที่วาง
- *   BIOS       : นำเข้าไฟล์ BIOS (เฉพาะเครื่องที่ใช้)
+ *   BIOS       : สถานะ BIOS, วิธีติดตั้ง, นำเข้าไฟล์ BIOS (เฉพาะเครื่องที่ใช้)
  *
  * ทุกการเปลี่ยนแปลงบันทึกทันที และมีผลตอนเปิดเกมครั้งถัดไป
  * -----------------------------------------------------------------------------
  */
 package com.allemulator.feature.settings
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import com.allemulator.core.designsystem.settings.BiosGuideDialog
+import java.util.zip.ZipInputStream
 import com.allemulator.core.emulation.tr
 import com.allemulator.core.designsystem.settings.ChipChoice
+import com.allemulator.core.designsystem.settings.ScreenOptions
 import com.allemulator.core.designsystem.settings.NavRow
 import com.allemulator.core.designsystem.settings.SwitchRow
 import android.app.Application
@@ -84,6 +90,14 @@ class SystemSettingsViewModel @Inject constructor(
 
     val message = MutableStateFlow<String?>(null)
 
+    /** ไฟล์ BIOS ที่ติดตั้งแล้ว (ไฟล์ขนาด >= 4 MB ในโฟลเดอร์ BIOS ของเครื่องนี้) */
+    val installedBios = MutableStateFlow(findBios())
+
+    private fun findBios(): List<String> =
+        File(app.filesDir, "system/${system.biosDir}").listFiles()
+            ?.filter { it.isFile && it.length() >= 4L * 1024 * 1024 }
+            ?.map { it.name }?.sorted().orEmpty()
+
     fun updatePerformance(change: (PerformanceSettings) -> PerformanceSettings) = viewModelScope.launch {
         settings.setPerformance(system, change(performance.value))
     }
@@ -97,18 +111,39 @@ class SystemSettingsViewModel @Inject constructor(
         message.value = tr("รีเซ็ตผังปุ่มแล้ว", "Button layout reset")
     }
 
-    /** ก๊อปไฟล์ BIOS ที่ผู้ใช้เลือกไปไว้ในโฟลเดอร์ system ของแอพ (ใช้ชื่อไฟล์เดิม) */
+    /**
+     * ก๊อปไฟล์ BIOS ที่ผู้ใช้เลือกไปไว้ในโฟลเดอร์ที่ core หา (system/<biosDir>) — ใช้ชื่อไฟล์เดิม
+     * เลือก .zip ได้: แตกทุกไฟล์ข้างในออกมาให้ (BIOS PS2 มักมาเป็น zip รวมหลายไฟล์)
+     */
     fun importBios(uri: Uri) = viewModelScope.launch {
         message.value = withContext(Dispatchers.IO) {
             runCatching {
                 val resolver = app.contentResolver
                 val name = resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
                     ?.use { c -> if (c.moveToFirst()) c.getString(0) else null } ?: "bios.bin"
-                val target = File(app.filesDir, "system/$name").apply { parentFile?.mkdirs() }
-                resolver.openInputStream(uri)?.use { input -> target.outputStream().use { input.copyTo(it) } }
-                tr("นำเข้า $name แล้ว", "Imported $name")
+                val dir = File(app.filesDir, "system/${system.biosDir}").apply { mkdirs() }
+                if (name.endsWith(".zip", ignoreCase = true)) {
+                    var count = 0
+                    resolver.openInputStream(uri)?.use { input ->
+                        ZipInputStream(input.buffered()).use { zip ->
+                            while (true) {
+                                val entry = zip.nextEntry ?: break
+                                val base = entry.name.substringAfterLast('/')
+                                // ข้ามโฟลเดอร์และไฟล์ขยะของ Mac
+                                if (entry.isDirectory || base.isEmpty() || base.startsWith(".") || entry.name.startsWith("__MACOSX/")) continue
+                                File(dir, base).outputStream().use { zip.copyTo(it) }
+                                count++
+                            }
+                        }
+                    }
+                    tr("นำเข้า BIOS จาก $name แล้ว ($count ไฟล์)", "Imported BIOS from $name ($count files)")
+                } else {
+                    resolver.openInputStream(uri)?.use { input -> File(dir, name).outputStream().use { input.copyTo(it) } }
+                    tr("นำเข้า $name แล้ว", "Imported $name")
+                }
             }.getOrElse { tr("นำเข้าไม่สำเร็จ: ${it.message}", "Import failed: ${it.message}") }
         }
+        installedBios.value = findBios()
     }
 }
 
@@ -125,7 +160,9 @@ fun SystemSettingsScreen(
     val perf by viewModel.performance.collectAsStateWithLifecycle()
     val overlay by viewModel.overlay.collectAsStateWithLifecycle()
     val message by viewModel.message.collectAsStateWithLifecycle()
-    val heavy = system in setOf(GameSystem.PSP, GameSystem.PS1)
+    val installedBios by viewModel.installedBios.collectAsStateWithLifecycle()
+    var showBiosGuide by remember { mutableStateOf(false) }
+    val heavy = system in setOf(GameSystem.PSP, GameSystem.PS1, GameSystem.PS2)
 
     val pickBios = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) viewModel.importBios(uri)
@@ -151,6 +188,11 @@ fun SystemSettingsScreen(
                     NavRow(tr("รีเซ็ตผังปุ่ม", "Reset button layout"), viewModel::resetLayout, tr("กลับไปใช้ตำแหน่งเริ่มต้น", "Go back to the default positions"))
                 }
 
+                // ---------------- ภาพ (สัดส่วน / ความชัด / ลดรอยหยัก) ----------------
+                GlassSection(tr("ภาพ", "Picture")) {
+                    ScreenOptions(system, perf) { new -> viewModel.updatePerformance { new } }
+                }
+
                 // ---------------- ความลื่น ----------------
                 GlassSection(tr("ความลื่นของเกม", "Game performance")) {
                     if (heavy) {
@@ -161,17 +203,14 @@ fun SystemSettingsScreen(
                         ) { p -> viewModel.updatePerformance { it.copy(preset = p, resolutionScale = null) } }
                         Text(perf.preset.description, color = GlassColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
 
-                        ChipChoice(
-                            tr("ความละเอียดภาพ", "Resolution"),
-                            listOf<Pair<Int?, String>>(null to tr("ตามโหมด", "By mode"), 1 to "1x", 2 to "2x", 3 to "3x", 4 to "4x"),
-                            perf.resolutionScale,
-                        ) { v -> viewModel.updatePerformance { it.copy(resolutionScale = v) } }
-
-                        ChipChoice(
-                            tr("ข้ามเฟรม (ช่วยให้ลื่นขึ้นแต่ภาพกระตุกเล็กน้อย)", "Frame skip (smoother, slightly choppy picture)"),
-                            listOf(0 to tr("ปิด", "Off"), -1 to tr("อัตโนมัติ", "Auto"), 1 to "1", 2 to "2", 3 to "3"),
-                            perf.frameSkip,
-                        ) { v -> viewModel.updatePerformance { it.copy(frameSkip = v) } }
+                        // PS2 (ARMSX2) ไม่มีตัวเลือกข้ามเฟรม
+                        if (system != GameSystem.PS2) {
+                            ChipChoice(
+                                tr("ข้ามเฟรม (ช่วยให้ลื่นขึ้นแต่ภาพกระตุกเล็กน้อย)", "Frame skip (smoother, slightly choppy picture)"),
+                                listOf(0 to tr("ปิด", "Off"), -1 to tr("อัตโนมัติ", "Auto"), 1 to "1", 2 to "2", 3 to "3"),
+                                perf.frameSkip,
+                            ) { v -> viewModel.updatePerformance { it.copy(frameSkip = v) } }
+                        }
 
                         SwitchRow(
                             tr("เรนเดอร์แบบหลาย thread", "Multi-threaded rendering"),
@@ -186,7 +225,7 @@ fun SystemSettingsScreen(
                             tr("ถ้า FPS ต่ำกว่า 28 แอพจะลดความละเอียด/ข้ามเฟรมให้เองระหว่างเล่น", "If FPS drops below 28, the app lowers resolution / skips frames while you play"),
                         )
                         SwitchRow(
-                            tr("โหมดเร่งความเร็ว (PSP)", "Speed hacks (PSP)"),
+                            tr("โหมดเร่งความเร็ว (PSP / PS2)", "Speed hacks (PSP / PS2)"),
                             perf.speedHacks,
                             { v -> viewModel.updatePerformance { it.copy(speedHacks = v) } },
                             tr("เร็วขึ้นชัดเจน แต่บางเกมภาพ effect อาจเพี้ยนเล็กน้อย", "Noticeably faster, some effects may look slightly off"),
@@ -226,12 +265,26 @@ fun SystemSettingsScreen(
 
                 // ---------------- BIOS ----------------
                 if (system.biosNote != null) {
-                    GlassSection(tr("BIOS (ไม่บังคับ)", "BIOS (optional)")) {
+                    GlassSection(tr("BIOS" + if (system.biosRequired) " (จำเป็น)" else " (ไม่บังคับ)", "BIOS" + if (system.biosRequired) " (required)" else " (optional)")) {
                         Text(system.biosNote!!, color = GlassColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
-                        NavRow(tr("นำเข้าไฟล์ BIOS", "Import BIOS file"), { pickBios.launch(arrayOf("*/*")) }, tr("ใช้ไฟล์ BIOS ที่คุณดัมพ์จากเครื่องของคุณเอง", "Use a BIOS you dumped from your own console"))
+                        if (system.biosRequired) {
+                            // สถานะ: ติดตั้งแล้วหรือยัง (เห็นชัดว่าทำไมเปิดเกมไม่ได้)
+                            Text(
+                                if (installedBios.isEmpty()) tr("ยังไม่มี BIOS — ต้องติดตั้งก่อนเล่น", "No BIOS yet — install one before playing")
+                                else tr("ติดตั้งแล้ว: ", "Installed: ") + installedBios.joinToString(", "),
+                                color = if (installedBios.isEmpty()) GlassColors.Danger else GlassColors.TextPrimary,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            NavRow(tr("วิธีติดตั้ง BIOS", "How to install the BIOS"), { showBiosGuide = true }, tr("ทำตาม 4 ขั้นตอนง่ายๆ", "4 simple steps"))
+                        }
+                        NavRow(tr("นำเข้าไฟล์ BIOS", "Import BIOS file"), { pickBios.launch(arrayOf("*/*")) }, tr("ใช้ไฟล์ BIOS ที่คุณดัมพ์จากเครื่องของคุณเอง (.bin หรือ .zip)", "Use a BIOS you dumped from your own console (.bin or .zip)"))
                     }
                 }
             }
         }
+    }
+
+    if (showBiosGuide) {
+        BiosGuideDialog(system, onDismiss = { showBiosGuide = false }, onImport = { pickBios.launch(arrayOf("*/*")) })
     }
 }

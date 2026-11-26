@@ -14,6 +14,8 @@
  */
 package com.allemulator.feature.home
 
+import com.allemulator.core.designsystem.glass.CoverImage
+import com.allemulator.core.designsystem.glass.BetaBadge
 import com.allemulator.core.emulation.tr
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -71,6 +73,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val coverVersion by viewModel.coverVersion.collectAsStateWithLifecycle()
 
     GlassScaffold {
         Column(Modifier.fillMaxSize()) {
@@ -92,7 +95,7 @@ fun HomeScreen(
             ) {
                 if (state.recent.isNotEmpty()) {
                     item(span = { GridItemSpan(maxLineSpan) }) {
-                        RecentRow(state.recent, onPlayGame)
+                        RecentRow(state.recent, onPlayGame, viewModel::coverFile, coverVersion)
                     }
                 }
                 items(state.cards, key = { it.system.id }) { card ->
@@ -114,6 +117,7 @@ private fun SystemCard(card: SystemCardUi, onClick: () -> Unit) {
     ) {
         Box(Modifier.fillMaxSize().padding(16.dp)) {
             ConsoleIcon(system, Modifier.size(96.dp).align(Alignment.Center).padding(bottom = 24.dp))
+            if (system.isBeta) BetaBadge(Modifier.align(Alignment.TopEnd))
             Column(Modifier.align(Alignment.BottomStart)) {
                 Text(system.displayName, style = MaterialTheme.typography.titleLarge, color = GlassColors.TextPrimary)
                 Text(
@@ -128,7 +132,12 @@ private fun SystemCard(card: SystemCardUi, onClick: () -> Unit) {
 
 /** แถว "เล่นต่อ" — เกมล่าสุดเลื่อนซ้าย-ขวาได้ */
 @Composable
-private fun RecentRow(games: List<GameEntity>, onPlay: (GameEntity) -> Unit) {
+private fun RecentRow(
+    games: List<GameEntity>,
+    onPlay: (GameEntity) -> Unit,
+    coverFile: (GameEntity) -> java.io.File?,
+    coverVersion: Int,
+) {
     Column {
         Text(
             tr("เล่นต่อ", "Continue"),
@@ -146,7 +155,10 @@ private fun RecentRow(games: List<GameEntity>, onPlay: (GameEntity) -> Unit) {
                     modifier = Modifier.width(200.dp),
                 ) {
                     Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        ConsoleIcon(system, Modifier.size(36.dp))
+                        // ปกเกมที่ผู้ใช้ใส่ (กดค้างที่เกมในหน้ารายการ) — ไม่มีปก = ไอคอนเครื่องเกม
+                        CoverImage(coverFile(game), coverVersion, Modifier.size(36.dp, 48.dp)) {
+                            ConsoleIcon(system, Modifier.size(36.dp))
+                        }
                         Spacer(Modifier.width(10.dp))
                         Column {
                             Text(game.title, color = GlassColors.TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelLarge)

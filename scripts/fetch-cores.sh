@@ -23,7 +23,7 @@ ABIS=("${@:-arm64-v8a armeabi-v7a x86_64}")
 read -r -a ABIS <<< "${ABIS[*]}"
 
 # core ที่แอพใช้ (ต้องตรงกับ GameSystem.coreLibrary)
-CORES=(ppsspp pcsx_rearmed gambatte fceumm mgba)
+CORES=(ppsspp pcsx_rearmed armsx2 gambatte fceumm mgba)
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -45,6 +45,16 @@ for abi in "${ABIS[@]}"; do
 done
 
 # ---- ไฟล์ระบบของ PPSSPP (ฟอนต์, flash0, ฐานข้อมูลเกม) ----
+# PS2: ตัวคั่นกลาง (native/armsx2-shim) — แก้ LibretroDroid ตอบเวอร์ชัน VFS เกินจริงจน core เด้ง
+# ต้องมี NDK (ตั้ง ANDROID_NDK_HOME) — มีแค่ arm64 เพราะ ARMSX2 มีแค่ 64-bit
+if [ -n "${ANDROID_NDK_HOME:-}" ] && [ -f "$ROOT/app/src/main/jniLibs/arm64-v8a/libarmsx2_libretro_android.so" ]; then
+  echo "→ arm64-v8a / libarmsx2_shim.so"
+  CC="$(ls "$ANDROID_NDK_HOME"/toolchains/llvm/prebuilt/*/bin/aarch64-linux-android28-clang* | head -1)"
+  "$CC" -shared -fPIC -O2 -Wall -Wl,-z,max-page-size=16384     -o "$ROOT/app/src/main/jniLibs/arm64-v8a/libarmsx2_shim.so" "$ROOT/native/armsx2-shim/armsx2_shim.c" -ldl -llog
+else
+  echo "   ! ข้าม libarmsx2_shim.so (ตั้ง ANDROID_NDK_HOME ก่อน) — ไม่มีไฟล์นี้ PS2 จะเล่นไม่ได้"
+fi
+
 echo "→ PPSSPP system assets"
 curl -fsSL "https://buildbot.libretro.com/assets/system/PPSSPP.zip" -o "$TMP/PPSSPP.zip"
 rm -rf "$ROOT/app/src/main/assets/system/PPSSPP"

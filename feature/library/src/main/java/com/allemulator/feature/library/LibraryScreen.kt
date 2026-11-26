@@ -15,6 +15,7 @@
  */
 package com.allemulator.feature.library
 
+import com.allemulator.core.designsystem.settings.BiosGuideDialog
 import com.allemulator.core.emulation.tr
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -123,7 +124,7 @@ fun LibraryScreen(
     GlassScaffold(tint = Color(system.accentStart)) {
         Column(Modifier.fillMaxSize()) {
             GlassTopBar(
-                title = system.displayName,
+                title = if (system.isBeta) "${system.displayName} (Beta)" else system.displayName,
                 subtitle = tr("${system.fullName} • ${state.totalCount} เกม", "${system.fullName} • ${state.totalCount} " + if (state.totalCount == 1) "game" else "games"),
                 navigation = { GlassIconButton(Icons.AutoMirrored.Rounded.ArrowBack, tr("กลับ", "Back"), onBack) },
                 actions = {
@@ -256,6 +257,12 @@ private fun EmptyState(system: GameSystem, onAddFolder: () -> Unit, onAddFiles: 
         system.biosNote?.let {
             Spacer(Modifier.height(8.dp))
             Text(it, color = GlassColors.TextSecondary, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyMedium)
+        }
+        if (system.biosRequired) {
+            var guide by remember { mutableStateOf(false) }
+            Spacer(Modifier.height(4.dp))
+            TextButton(onClick = { guide = true }) { Text(tr("วิธีติดตั้ง BIOS", "How to install the BIOS")) }
+            if (guide) BiosGuideDialog(system, onDismiss = { guide = false })
         }
         Spacer(Modifier.height(24.dp))
         GlassButton(tr("เลือกโฟลเดอร์เกม", "Choose game folder"), onAddFolder, icon = Icons.Rounded.CreateNewFolder, tint = Color(system.accentStart))

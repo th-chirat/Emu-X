@@ -5,7 +5,7 @@
  *
  *   ลบโฆษณาตลอดชีพ : ปุ่มซื้อ (แสดงราคาจาก Play Store) + กู้คืนการซื้อ
  *   ทั่วไป          : ภาษา (สวิตช์ TH/EN), ธีม (ตามระบบ/สว่าง/มืด), สั่นเมื่อกดปุ่ม, ดูวิธีใช้งาน
- *   เกี่ยวกับ        : เวอร์ชัน, นโยบายความเป็นส่วนตัว, ซอร์สโค้ด, license ของ emulator
+ *   เกี่ยวกับ        : เวอร์ชัน, นโยบายความเป็นส่วนตัว, ซอร์สโค้ด, เครดิตและ license ของ emulator
  * -----------------------------------------------------------------------------
  */
 package com.allemulator.feature.settings
@@ -97,15 +97,23 @@ class AppSettingsViewModel @Inject constructor(
     fun showTutorial() = viewModelScope.launch { settings.setTutorialSeen(false) }
 }
 
-/** ข้อมูล license ของ emulator core ที่ใช้ (GPL บังคับให้แจ้งผู้ใช้) */
-private val CORE_LICENSES get() = listOf(
-    "PPSSPP (PSP)" to "GPL-2.0+ — github.com/hrydgard/ppsspp",
-    "PCSX-ReARMed (PS1)" to "GPL-2.0 — github.com/libretro/pcsx_rearmed",
-    "Gambatte (GB/GBC)" to "GPL-2.0 — github.com/libretro/gambatte-libretro",
-    "FCEUmm (NES)" to "GPL-2.0 — github.com/libretro/libretro-fceumm",
-    "mGBA (GBA)" to "MPL-2.0 — github.com/libretro/mgba",
-    "LibretroDroid" to "GPL-3.0 — github.com/Swordfish90/LibretroDroid",
-    tr("Haze (เอฟเฟกต์กระจก)", "Haze (glass effect)") to "Apache-2.0 — github.com/chrisbanes/haze",
+/**
+ * เครดิต + license ของโอเพนซอร์สที่แอพใช้ (บรีฟรอบ 5 ข้อ 1)
+ * GPL บังคับให้แจ้งผู้ใช้ว่าใช้โค้ดของใคร ภายใต้ license อะไร และหาซอร์สได้ที่ไหน
+ * และเป็นการให้เกียรติทีมที่ทำ emulator ด้วย — ส่วนที่ทำงานหนักจริงคือของพวกเขา
+ */
+private data class Credit(val name: String, val role: String, val authors: String, val license: String)
+
+private val CREDITS get() = listOf(
+    Credit("ARMSX2", tr("emulator PS2", "PS2 emulator"), tr("ทีม ARMSX2 — พัฒนาต่อจาก PCSX2 ของทีม PCSX2", "The ARMSX2 team — built on PCSX2 by the PCSX2 team"), "GPL-3.0 — github.com/ARMSX2/ARMSX2"),
+    Credit("PPSSPP", tr("emulator PSP", "PSP emulator"), "Henrik Rydgård " + tr("และผู้ร่วมพัฒนา", "and contributors"), "GPL-2.0+ — github.com/hrydgard/ppsspp"),
+    Credit("PCSX-ReARMed", tr("emulator PS1", "PS1 emulator"), "notaz, libretro " + tr("และผู้ร่วมพัฒนา", "and contributors"), "GPL-2.0 — github.com/libretro/pcsx_rearmed"),
+    Credit("Gambatte", tr("emulator Game Boy / GBC", "Game Boy / GBC emulator"), "sinamas " + tr("และผู้ร่วมพัฒนา", "and contributors"), "GPL-2.0 — github.com/libretro/gambatte-libretro"),
+    Credit("mGBA", tr("emulator GBA", "GBA emulator"), "Vicki Pfau (endrift) " + tr("และผู้ร่วมพัฒนา", "and contributors"), "MPL-2.0 — github.com/libretro/mgba"),
+    Credit("FCEUmm", tr("emulator NES", "NES emulator"), tr("ทีม FCEU และ libretro", "The FCEU team and libretro"), "GPL-2.0 — github.com/libretro/libretro-fceumm"),
+    Credit("LibretroDroid", tr("ตัวเล่นเกม (frontend)", "Game player (frontend)"), "Filippo Scognamiglio (Swordfish90)", "GPL-3.0 — github.com/Swordfish90/LibretroDroid"),
+    Credit("libretro API", tr("มาตรฐานเชื่อม emulator", "Emulator interface standard"), tr("ทีม RetroArch", "The RetroArch team"), "MIT — github.com/libretro/RetroArch"),
+    Credit("Haze", tr("เอฟเฟกต์กระจก", "Glass effect"), "Chris Banes", "Apache-2.0 — github.com/chrisbanes/haze"),
 )
 
 /**
@@ -188,7 +196,7 @@ fun AppSettingsScreen(
                     )
                     NavRow(tr("นโยบายความเป็นส่วนตัว", "Privacy policy"), { context.openUrl(privacyUrl) })
                     NavRow(tr("ซอร์สโค้ด (โอเพนซอร์ส GPL)", "Source code (open source, GPL)"), { context.openUrl(sourceUrl) })
-                    NavRow(tr("License ของ emulator ที่ใช้", "Emulator licenses"), { showLicenses = true })
+                    NavRow(tr("เครดิตและ license", "Credits & licenses"), { showLicenses = true }, tr("ขอบคุณทีมผู้สร้าง emulator ทุกตัวที่แอพนี้ใช้", "Thanks to the teams behind every emulator in this app"))
                 }
             }
         }
@@ -197,12 +205,19 @@ fun AppSettingsScreen(
     if (showLicenses) {
         AlertDialog(
             onDismissRequest = { showLicenses = false },
-            title = { Text(tr("โอเพนซอร์สที่ใช้", "Open-source software")) },
+            title = { Text(tr("เครดิต", "Credits")) },
             text = {
-                Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    CORE_LICENSES.forEach { (name, license) ->
-                        Text(name, style = MaterialTheme.typography.titleMedium)
-                        Text(license, style = MaterialTheme.typography.bodyMedium)
+                Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        tr("Emu-X ทำงานได้เพราะโอเพนซอร์สเหล่านี้ ขอบคุณทุกทีมมาก", "Emu-X is possible thanks to these open-source projects. Huge thanks to every team."),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    CREDITS.forEach { c ->
+                        Column {
+                            Text("${c.name} — ${c.role}", style = MaterialTheme.typography.titleMedium)
+                            Text(c.authors, style = MaterialTheme.typography.bodyMedium)
+                            Text(c.license, style = MaterialTheme.typography.bodySmall)
+                        }
                     }
                 }
             },

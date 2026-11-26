@@ -9,6 +9,7 @@
  */
 package com.allemulator.feature.home
 
+import com.allemulator.core.data.CoverStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.allemulator.core.data.GameRepository
@@ -33,7 +34,13 @@ data class HomeUiState(
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     repository: GameRepository,
+    private val covers: CoverStore,
 ) : ViewModel() {
+
+    /** ปกเกม (เปลี่ยนเมื่อผู้ใช้ใส่/ลบปก → แถว "เล่นต่อ" โหลดรูปใหม่) */
+    val coverVersion: StateFlow<Int> = covers.version
+    fun coverFile(game: GameEntity): java.io.File? = covers.coverFile(game.uri)
+
 
     val state: StateFlow<HomeUiState> =
         combine(repository.counts(), repository.recent(limit = 10)) { counts, recent ->

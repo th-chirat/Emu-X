@@ -16,6 +16,7 @@
  */
 package com.allemulator.feature.player
 
+import android.os.Build
 import com.allemulator.core.emulation.tr
 import android.app.Application
 import android.os.ParcelFileDescriptor
@@ -83,6 +84,7 @@ class PlayerViewModel @Inject constructor(
             val system = GameSystem.fromId(game.systemId) ?: return@withContext PlayerState.Error(tr("ไม่รู้จักเครื่องเกม ${game.systemId}", "Unknown console ${game.systemId}"))
 
             val systemDir = File(app.filesDir, "system").apply { mkdirs() }
+            checkCanRun(system, systemDir)?.let { return@withContext PlayerState.Error(it) }
             val savesDir = File(app.filesDir, "saves/${system.id}").apply { mkdirs() }
             SystemAssets.ensureInstalled(app, systemDir)
 
@@ -101,6 +103,30 @@ class PlayerViewModel @Inject constructor(
                 savesDir = savesDir,
             )
         }.getOrElse { PlayerState.Error(tr("เปิดเกมไม่ได้: ${it.message}", "Can't open game: ${it.message}")) }
+    }
+
+    /**
+     * เช็คว่าเครื่องนี้เล่นเกมของ [system] ได้ไหม (ตอนนี้มีแค่ PS2 ที่มีเงื่อนไข)
+     * @return ข้อความบอกผู้ใช้ (null = เล่นได้)
+     */
+    private fun checkCanRun(system: GameSystem, systemDir: File): String? {
+        if (Build.VERSION.SDK_INT < system.minSdk) {
+            return tr("${system.displayName} ต้องใช้ Android 9 ขึ้นไป", "${system.displayName} needs Android 9 or newer")
+        }
+        // core มีเฉพาะมือถือ 64-bit (arm64) — มือถือรุ่นเก่า 32-bit จะไม่มีไฟล์นี้
+        if (listOfNotNull(system.coreLibrary, system.realCore).any { !File(app.applicationInfo.nativeLibraryDir, it).exists() }) {
+            return tr("มือถือเครื่องนี้ไม่รองรับ ${system.displayName} (ต้องเป็นมือถือ 64-bit)", "This phone can't run ${system.displayName} (needs a 64-bit phone)")
+        }
+        if (system.biosRequired) {
+            val bios = File(systemDir, system.biosDir).listFiles()?.any { it.isFile && it.length() >= 4L * 1024 * 1024 } == true
+            if (!bios) {
+                return tr(
+                    "ยังไม่มี BIOS ของ ${system.displayName}\nไปที่ ตั้งค่า ${system.displayName} → นำเข้าไฟล์ BIOS ก่อนนะ",
+                    "No ${system.displayName} BIOS yet.\nGo to ${system.displayName} settings → Import BIOS file first.",
+                )
+            }
+        }
+        return null
     }
 
     // ---------------- ไฟล์เซฟ ----------------

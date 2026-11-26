@@ -71,3 +71,11 @@ for yy in range(187, 319):
 gba[333:352, 185:320, :3] = 0
 save(erase(gba, [(218, 138, 290, 162)], lambda rgb: lum(rgb) >= 0), "console_gba.png")
 print("gba ok")
+
+# PS2 (ARMSX2): พื้นหลังโปร่งใสอยู่แล้ว — ลบแค่โลโก้ "PS2", ตัวหนังสือ "PlayStation 2" และชื่อผู้ผลิตด้านบน
+# ด้านหน้าตัวเครื่องเป็นสีเทาเข้มเรียบ (51,51,51) → ทาทับกรอบโลโก้ด้วยสีนั้นเลย (inpaint จะทิ้งรอยเงา)
+ps2 = load("Standing_Black_PlayStation_2_icon.png")
+for x0, y0, x1, y1 in [(71, 96, 128, 142)]:
+    ps2[y0:y1, x0:x1, :3] = 51
+light_or_color = lambda rgb: (lum(rgb) > 42) | (sat(rgb) > 30)
+save(erase(ps2, [(136, 4, 166, 16)], light_or_color), "console_ps2.png")

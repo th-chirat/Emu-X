@@ -114,9 +114,9 @@
     "semantic_hash": ""
   },
   "core/designsystem/src/main/java/com/allemulator/core/designsystem/icons/ConsoleIcon.kt": {
-    "mtime": 1795279248.5645545,
-    "seen": 1795280176.7874324,
-    "ast_hash": "44dcdc68a4ae2fe493331de46567271f",
+    "mtime": 1795668500.7850816,
+    "seen": 1795670839.859549,
+    "ast_hash": "4f5649ffb4d96816f42453e402ec171d",
     "semantic_hash": ""
   },
   "core/designsystem/src/main/java/com/allemulator/core/designsystem/theme/Theme.kt": {
@@ -132,27 +132,27 @@
     "semantic_hash": ""
   },
   "core/emulation/src/main/java/com/allemulator/core/emulation/ControllerLayouts.kt": {
-    "mtime": 1795279248.5625546,
-    "seen": 1795280176.7874324,
-    "ast_hash": "e41b6216dd10bdb8b2a0b7be158332a0",
+    "mtime": 1795668500.7840817,
+    "seen": 1795670839.859549,
+    "ast_hash": "e48b587b68287744d471031e29104512",
     "semantic_hash": ""
   },
   "core/emulation/src/main/java/com/allemulator/core/emulation/CoreOptions.kt": {
-    "mtime": 1795279248.5625546,
-    "seen": 1795280176.7874324,
-    "ast_hash": "ba298144915669da4113c737b6f5a6dd",
+    "mtime": 1795674394.5789697,
+    "seen": 1795674611.3316455,
+    "ast_hash": "51cde3ea733dab32b25ea837fb6b4d83",
     "semantic_hash": ""
   },
   "core/emulation/src/main/java/com/allemulator/core/emulation/GameSystem.kt": {
-    "mtime": 1795279510.9497387,
-    "seen": 1795280176.7874324,
-    "ast_hash": "740d40aa8ce261e861a26780a379aa06",
+    "mtime": 1795673478.812354,
+    "seen": 1795674611.3316455,
+    "ast_hash": "61e39cd24171ca85f08d72cda4723b35",
     "semantic_hash": ""
   },
   "core/emulation/src/main/java/com/allemulator/core/emulation/PerformancePreset.kt": {
-    "mtime": 1795279517.3352485,
-    "seen": 1795280176.7874324,
-    "ast_hash": "9851995b643ac03d4bebd1809d978046",
+    "mtime": 1795673403.8685758,
+    "seen": 1795674611.3316455,
+    "ast_hash": "876546398b6c28b6b4436524aae42f16",
     "semantic_hash": ""
   },
   "core/emulation/src/main/java/com/allemulator/core/emulation/VirtualButton.kt": {
@@ -174,15 +174,15 @@
     "semantic_hash": ""
   },
   "feature/home/src/main/java/com/allemulator/feature/home/HomeScreen.kt": {
-    "mtime": 1795665052.9872622,
-    "seen": 1795665441.4839993,
-    "ast_hash": "30f95156962611f0a55487aef997551c",
+    "mtime": 1795673478.8133514,
+    "seen": 1795674611.3316455,
+    "ast_hash": "6a11745596041083a0659c5a8d1612b2",
     "semantic_hash": ""
   },
   "feature/home/src/main/java/com/allemulator/feature/home/HomeViewModel.kt": {
-    "mtime": 1795665052.9882643,
-    "seen": 1795665441.4839993,
-    "ast_hash": "5c2d12ed85f647e75dfd5d9f639349b3",
+    "mtime": 1795673478.81435,
+    "seen": 1795674611.3316455,
+    "ast_hash": "e732e564cf42c29bad88533ad244832f",
     "semantic_hash": ""
   },
   "feature/library/build.gradle.kts": {
@@ -192,9 +192,9 @@
     "semantic_hash": ""
   },
   "feature/library/src/main/java/com/allemulator/feature/library/LibraryScreen.kt": {
-    "mtime": 1795665073.9754982,
-    "seen": 1795665441.4839993,
-    "ast_hash": "d9f96023923797d1fac9a7709b46c9e3",
+    "mtime": 1795673549.1872237,
+    "seen": 1795674611.3316455,
+    "ast_hash": "f8d18fb192a02494b52bc3c1ace27191",
     "semantic_hash": ""
   },
   "feature/library/src/main/java/com/allemulator/feature/library/LibraryViewModel.kt": {
@@ -210,15 +210,15 @@
     "semantic_hash": ""
   },
   "feature/player/src/main/java/com/allemulator/feature/player/GameActivity.kt": {
-    "mtime": 1795665073.9764972,
-    "seen": 1795665441.4839993,
-    "ast_hash": "2c494cb93e70cdcd6a1995ddf72187b0",
+    "mtime": 1795674228.8715813,
+    "seen": 1795674611.3316455,
+    "ast_hash": "d04f46e244fb81d8194539069f1b828d",
     "semantic_hash": ""
   },
   "feature/player/src/main/java/com/allemulator/feature/player/GameFileResolver.kt": {
-    "mtime": 1795279518.6985176,
-    "seen": 1795280176.7874324,
-    "ast_hash": "d10bda873d7c1b21423308c75752b6dd",
+    "mtime": 1795668500.7850816,
+    "seen": 1795670839.859549,
+    "ast_hash": "84fbe7c2fd33f8b42959155ab583947f",
     "semantic_hash": ""
   },
   "feature/player/src/main/java/com/allemulator/feature/player/PerformanceMonitor.kt": {
@@ -234,9 +234,9 @@
     "semantic_hash": ""
   },
   "feature/player/src/main/java/com/allemulator/feature/player/PlayerViewModel.kt": {
-    "mtime": 1795665073.9104967,
-    "seen": 1795665441.4839993,
-    "ast_hash": "33d96111d69bb8c2f40dc0831078914f",
+    "mtime": 1795669271.5998473,
+    "seen": 1795670839.859549,
+    "ast_hash": "013fdc1048cc855945829a27a04f30d8",
     "semantic_hash": ""
   },
   "feature/player/src/main/java/com/allemulator/feature/player/SystemAssets.kt": {
@@ -264,15 +264,15 @@
     "semantic_hash": ""
   },
   "feature/settings/src/main/java/com/allemulator/feature/settings/AppSettingsScreen.kt": {
-    "mtime": 1795665052.9931521,
-    "seen": 1795665441.4839993,
-    "ast_hash": "c606d16c342438f890da4ec5fda9d607",
+    "mtime": 1795673549.1882243,
+    "seen": 1795674611.3316455,
+    "ast_hash": "9dfb89b3662c041729c9cd87750e8398",
     "semantic_hash": ""
   },
   "feature/settings/src/main/java/com/allemulator/feature/settings/SystemSettingsScreen.kt": {
-    "mtime": 1795665073.9754982,
-    "seen": 1795665441.4839993,
-    "ast_hash": "06ee44eb6d0c33c36bc81e23fa8ca22c",
+    "mtime": 1795673549.1862235,
+    "seen": 1795674611.3316455,
+    "ast_hash": "031312d9ca46ecb9549538edb72151ee",
     "semantic_hash": ""
   },
   "gradlew": {
@@ -306,9 +306,9 @@
     "semantic_hash": ""
   },
   "scripts/fetch-cores.sh": {
-    "mtime": 1795279248.569556,
-    "seen": 1795280176.7874324,
-    "ast_hash": "a2b79a628ac6011bb448c8f2ae80266a",
+    "mtime": 1795669271.5998473,
+    "seen": 1795670839.859549,
+    "ast_hash": "de08355315e596dc287130c4c1625385",
     "semantic_hash": ""
   },
   "scripts/graphify.sh": {
@@ -342,9 +342,9 @@
     "semantic_hash": ""
   },
   "docs/CORES.md": {
-    "mtime": 1795279248.568557,
-    "seen": 1795280176.7874324,
-    "ast_hash": "33cd048e4a74240a399d439faf6057cd",
+    "mtime": 1795670804.5809782,
+    "seen": 1795670839.859549,
+    "ast_hash": "3ef5bdbcb52058f4c20a9b0c8450ae08",
     "semantic_hash": ""
   },
   "docs/PRIVACY_POLICY.md": {
@@ -360,15 +360,15 @@
     "semantic_hash": ""
   },
   "feature/player/src/main/java/com/allemulator/feature/player/InGameSettings.kt": {
-    "mtime": 1795665061.0496516,
-    "seen": 1795665441.4839993,
-    "ast_hash": "c22cc1223f1ad65faafcfa89d5d271e4",
+    "mtime": 1795673441.8367007,
+    "seen": 1795674611.3316455,
+    "ast_hash": "77766e4c5023533c9aef921e9a5f912a",
     "semantic_hash": ""
   },
   "scripts/make-console-icons.py": {
-    "mtime": 1795279214.3374035,
-    "seen": 1795280176.7874324,
-    "ast_hash": "21eb632c78176028dd0e2bf571120f48",
+    "mtime": 1795668421.188881,
+    "seen": 1795670839.859549,
+    "ast_hash": "7a58b60221ec70c83ecfb8a717083baf",
     "semantic_hash": ""
   },
   "core/designsystem/src/main/res/drawable-nodpi/console_gb.png": {
@@ -402,9 +402,9 @@
     "semantic_hash": ""
   },
   "core/emulation/src/main/java/com/allemulator/core/emulation/AutoTuner.kt": {
-    "mtime": 1795279518.6208284,
-    "seen": 1795280176.7874324,
-    "ast_hash": "d29b6859235573fc19700694d164fd7f",
+    "mtime": 1795668500.7850816,
+    "seen": 1795670839.859549,
+    "ast_hash": "0bf657d6177e699fbb76f4c218c951d2",
     "semantic_hash": ""
   },
   "core/emulation/src/test/java/com/allemulator/core/emulation/AutoTunerTest.kt": {
@@ -432,9 +432,9 @@
     "semantic_hash": ""
   },
   "core/designsystem/src/main/java/com/allemulator/core/designsystem/settings/SettingsWidgets.kt": {
-    "mtime": 1795665025.399758,
-    "seen": 1795665441.4839993,
-    "ast_hash": "30edbaab72a0f2d1332ca4c1c76e0681",
+    "mtime": 1795674394.5789697,
+    "seen": 1795674611.3316455,
+    "ast_hash": "9b998e4bf52ed7e8192814d1b33716b7",
     "semantic_hash": ""
   },
   "core/emulation/src/main/java/com/allemulator/core/emulation/L10n.kt": {
@@ -465,6 +465,30 @@
     "mtime": 1795664941.948764,
     "seen": 1795665441.4839993,
     "ast_hash": "2e6280c0e60a931b357aebf3d8c58dcd",
+    "semantic_hash": ""
+  },
+  "native/armsx2-shim/armsx2_shim.c": {
+    "mtime": 1795670126.119619,
+    "seen": 1795670839.859549,
+    "ast_hash": "8e663b6c8eab8f9074c786e1e6d14bcf",
+    "semantic_hash": ""
+  },
+  "native/armsx2-shim/libretro.h": {
+    "mtime": 1795669252.1447258,
+    "seen": 1795670839.859549,
+    "ast_hash": "3daa93a1b4b6326943bf472e783718c5",
+    "semantic_hash": ""
+  },
+  "core/designsystem/src/main/res/drawable-nodpi/console_ps2.png": {
+    "mtime": 1795668432.192561,
+    "seen": 1795670839.859549,
+    "ast_hash": "e5161552d899eb6b87d015e1760254d2",
+    "semantic_hash": ""
+  },
+  "core/designsystem/src/main/java/com/allemulator/core/designsystem/settings/BiosGuide.kt": {
+    "mtime": 1795673504.9559045,
+    "seen": 1795674611.3316455,
+    "ast_hash": "93b40a3f7160280935607a5bc4042544",
     "semantic_hash": ""
   }
 }

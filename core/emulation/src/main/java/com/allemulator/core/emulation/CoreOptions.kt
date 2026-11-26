@@ -52,6 +52,25 @@ object CoreOptions {
                 put("pcsx_rearmed_neon_enhancement_enable", if (scale >= 2) "enabled" else "disabled")
             }
 
+            // PS2 (ARMSX2) — key/ค่าจาก pcsx2-libretro/Main.cpp ของ ARMSX2
+            GameSystem.PS2 -> buildMap {
+                // core เลือก Vulkan เป็นค่าเริ่มต้น แต่ LibretroDroid มีแค่ OpenGL ES → บังคับ OpenGL
+                put("armsx2_renderer", "OpenGL")
+                put("armsx2_upscale", "${scale.coerceIn(1, 4)}x")
+                put("armsx2_fast_boot", "enabled") // ข้ามหน้าจอ BIOS เข้าเกมเลย
+                put("armsx2_mtvu", "enabled")      // ใช้ CPU อีกคอร์ช่วยคำนวณ VU1
+                // ทางลัดเร่งความเร็ว: ข้ามรอบ CPU (EE) เล็กน้อย + ไม่อ่านภาพกลับจาก GPU
+                put("armsx2_ee_cycle_skip", if (s.speedHacks) "mild" else "disabled")
+                put("armsx2_hw_download_mode", if (s.speedHacks) "Disable Readbacks" else "Accurate")
+                // ลดรอยหยัก: FXAA (เบา ใช้ได้ทุกมือถือ)
+                put("armsx2_fxaa", if (s.antiAliasing) "enabled" else "disabled")
+                // core ส่งภาพ 4:3 เสมอ — แอพเป็นคนยืดเป็น 16:9 / เต็มจอเอง (GameActivity.stretchBuffer)
+                // (ถ้าให้ core ทำ 16:9 ด้วย ภาพจะถูกบีบซ้อนสองชั้นจนเล็กลง)
+                // ไม่เปิดแพตช์จอกว้าง: ทดสอบแล้วบางเกม (Downhill Domination) วาดภาพเล็กลงพร้อมขอบเทา
+                put("armsx2_aspect_ratio", "Auto 4:3/3:2")
+                put("armsx2_widescreen_patches", "disabled")
+            }
+
             // GBA: mGBA เบาอยู่แล้ว — โหมดประหยัดแบตให้ข้ามเฟรมเมื่อเครื่องช้า
             // (key จาก mgba/src/platform/libretro/libretro_core_options.h)
             GameSystem.GBA -> buildMap {
@@ -65,6 +84,28 @@ object CoreOptions {
     }
 
     /** ตัวคูณความละเอียดที่ใช้จริง: ถ้าผู้ใช้ไม่ได้กำหนดเอง ใช้ค่าจาก preset */
+    /**
+     * ตัวเลือกความชัดของภาพ (บรีฟรอบ 5 ข้อ 3): scale → ชื่อที่ผู้ใช้เข้าใจ (480p / 720p / 1080p)
+     * ความสูงภาพจริงของแต่ละเครื่องไม่เท่ากัน เลยต้องแปลงต่อเครื่อง
+     *   PSP เดิม 272 เส้น: 2x = 544 (~480p), 3x = 816 (~720p), 4x = 1088 (~1080p)
+     *   PS2 เดิม 448–480 เส้น: 1x = 480p, 2x = 960 (~720p+), 3x = 1440 (~1080p+)
+     *   PS1 เดิม 240 เส้น: 2x = 480p (core ทำได้แค่ 2 เท่า)
+     * คืนค่าว่าง = เครื่องนี้ปรับความชัดไม่ได้
+     * key null = "ตามโหมด" (ใช้ค่าจาก preset)
+     */
+    fun resolutionChoices(system: GameSystem): List<Pair<Int?, String>> {
+        val byMode = null to tr("ตามโหมด", "By mode")
+        return when (system) {
+            GameSystem.PSP -> listOf(byMode, 2 to "480p", 3 to "720p", 4 to "1080p")
+            GameSystem.PS2 -> listOf(byMode, 1 to "480p", 2 to "720p", 3 to "1080p")
+            GameSystem.PS1 -> listOf(byMode, 1 to "240p", 2 to "480p")
+            else -> emptyList()
+        }
+    }
+
+    /** เครื่องที่ปรับลดรอยหยักได้ (PPSSPP มี MSAA แต่ใช้ได้กับ Vulkan เท่านั้น ส่วนแอพนี้วาดด้วย OpenGL) */
+    fun supportsAntiAliasing(system: GameSystem): Boolean = system == GameSystem.PS2
+
     fun scaleOf(s: PerformanceSettings): Int = (s.resolutionScale ?: when (s.preset) {
         PerformancePreset.BATTERY -> 1
         PerformancePreset.BALANCED -> 2

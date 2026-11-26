@@ -7,6 +7,7 @@
  * ปรับได้ทันทีโดยไม่ต้องออกจากเกม:
  *   - โหมดความลื่น (ประหยัดแบต / สมดุล / ภาพสวยสุด) + ปรับความลื่นอัตโนมัติ
  *     (บางค่า เช่น ความละเอียดของ PSP อาจมีผลเต็มที่หลังเปิดเกมใหม่ — เป็นข้อจำกัดของ core)
+ *   - สัดส่วนภาพ (ตามเกม / เต็มจอ / 16:9 / 4:3), ความชัด (480p / 720p / 1080p), ลดรอยหยัก
  *   - ฟิลเตอร์ภาพ (ปกติ / คมชัด / LCD / CRT)
  *   - ข้อมูลบนจอ: FPS / CPU / RAM / อุณหภูมิแบต
  * ทุกค่าถูกบันทึกเป็นค่าตั้งค่าของเครื่องเกมนั้นด้วย
@@ -23,7 +24,9 @@ import androidx.compose.ui.unit.dp
 import com.allemulator.core.designsystem.settings.ChipChoice
 import com.allemulator.core.designsystem.settings.SwitchRow
 import com.allemulator.core.designsystem.theme.GlassColors
+import com.allemulator.core.emulation.GameSystem
 import com.allemulator.core.emulation.OverlaySettings
+import com.allemulator.core.designsystem.settings.ScreenOptions
 import com.allemulator.core.emulation.PerformancePreset
 import com.allemulator.core.emulation.PerformanceSettings
 import com.allemulator.core.emulation.ScreenShader
@@ -31,6 +34,7 @@ import com.allemulator.core.emulation.tr
 
 @Composable
 fun InGameSettings(
+    system: GameSystem,
     performance: PerformanceSettings,
     overlay: OverlaySettings,
     onPerformance: (PerformanceSettings) -> Unit,
@@ -50,6 +54,9 @@ fun InGameSettings(
             { onPerformance(performance.copy(autoTune = it)) },
             tr("ถ้า FPS ต่ำกว่า 28 แอพจะลดความละเอียด/ข้ามเฟรมให้เอง", "If FPS drops below 28, lowers resolution / skips frames for you"),
         )
+
+        Section(tr("ภาพ", "Picture"))
+        ScreenOptions(system, performance, onPerformance)
         ChipChoice(
             tr("ฟิลเตอร์ภาพ", "Screen filter"),
             ScreenShader.entries.map { it to it.title },

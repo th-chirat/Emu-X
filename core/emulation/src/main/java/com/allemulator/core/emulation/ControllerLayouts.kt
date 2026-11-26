@@ -20,7 +20,7 @@ object ControllerLayouts {
         GameSystem.GB, GameSystem.GBC, GameSystem.NES -> twoButton()
         GameSystem.GBA -> gba()
         GameSystem.PSP -> playstation(twoShoulderRows = false, twoSticks = false)
-        GameSystem.PS1 -> playstation(twoShoulderRows = true, twoSticks = true)
+        GameSystem.PS1, GameSystem.PS2 -> playstation(twoShoulderRows = true, twoSticks = true)
     }
 
     // ---------------- ตัวช่วยสร้างปุ่มแต่ละแบบ ----------------

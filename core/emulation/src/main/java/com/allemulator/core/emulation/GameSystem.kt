@@ -1,7 +1,7 @@
 /*
  * GameSystem.kt
  * -----------------------------------------------------------------------------
- * "ทะเบียนเครื่องเกม" — ข้อมูลประจำตัวของเครื่องเกมทั้ง 6 เครื่องอยู่ที่นี่ที่เดียว
+ * "ทะเบียนเครื่องเกม" — ข้อมูลประจำตัวของเครื่องเกมทั้ง 7 เครื่องอยู่ที่นี่ที่เดียว
  *
  * อยากเพิ่มเครื่องเกมใหม่ในอนาคต? ทำ 3 อย่าง:
  *   1) เพิ่มค่าใน enum นี้
@@ -19,12 +19,19 @@ package com.allemulator.core.emulation
  * @property fullName      ชื่อเต็มที่โชว์ในหน้ารายการเกม
  * @property coreLibrary   ชื่อไฟล์ .so ของ libretro core (อยู่ใน app/src/main/jniLibs/<abi>/)
  * @property extensions    นามสกุลไฟล์เกมที่เครื่องนี้รับ (ตัวเล็กทั้งหมด ไม่มีจุด)
- *                         ทุกเครื่องรับ .zip ได้ — แอพแตกไฟล์ให้อัตโนมัติก่อนเล่น
- * @property hasAnalog     true = เครื่องนี้มีอนาล็อก (PSP/PS1)
+ *                         เกือบทุกเครื่องรับ .zip ได้ — แอพแตกไฟล์ให้อัตโนมัติก่อนเล่น
+ *                         (ยกเว้น PS2: แผ่นใหญ่หลาย GB แตก zip ลงเครื่องไม่ไหว)
+ * @property hasAnalog     true = เครื่องนี้มีอนาล็อก (PSP/PS1/PS2)
  * @property accentStart   สีเริ่มของการ์ด (ARGB)
  * @property accentEnd     สีปลายของการ์ด (ARGB) — ใช้ไล่สีพื้นหลังการ์ดกระจก
  * @property biosNoteTh    ข้อความแนะนำเรื่อง BIOS ภาษาไทย (null = ไม่ต้องใช้ BIOS) — ใช้ผ่าน biosNote
  * @property biosNoteEn    ข้อความเดียวกันภาษาอังกฤษ
+ * @property biosDir       โฟลเดอร์ย่อยใต้ files/system ที่ core หา BIOS ("" = วางไว้ที่ system เลย)
+ * @property biosRequired  true = ไม่มี BIOS เล่นไม่ได้ (PS2)
+ * @property minSdk        Android ขั้นต่ำที่ core ทำงานได้
+ * @property isBeta        true = ยังไม่นิ่ง → โชว์ป้าย BETA (PS2)
+ * @property realCore      core จริงที่ [coreLibrary] โหลดต่ออีกที (PS2: coreLibrary เป็นตัวคั่นกลาง
+ *                         native/armsx2-shim ที่แก้ปัญหา VFS ของ LibretroDroid) — null = ไม่มี
  */
 enum class GameSystem(
     val id: String,
@@ -37,6 +44,11 @@ enum class GameSystem(
     val accentEnd: Long,
     private val biosNoteTh: String? = null,
     private val biosNoteEn: String? = null,
+    val biosDir: String = "",
+    val biosRequired: Boolean = false,
+    val minSdk: Int = 26,
+    val realCore: String? = null,
+    val isBeta: Boolean = false,
 ) {
     PSP(
         id = "psp",
@@ -57,6 +69,23 @@ enum class GameSystem(
         accentStart = 0xFF6E6E8F, accentEnd = 0xFFC9C9E0,
         biosNoteTh = "ใช้ BIOS ในตัว (HLE) ได้เลย ถ้าเกมไหนมีปัญหาให้นำไฟล์ BIOS ของคุณเองมาวางในโฟลเดอร์ BIOS",
         biosNoteEn = "Works with the built-in BIOS (HLE). If a game has problems, import your own BIOS file.",
+    ),
+    PS2(
+        id = "ps2",
+        displayName = "PS2",
+        fullName = "PlayStation 2",
+        // ARMSX2 (PCSX2 ที่แปลงให้เร็วบนชิป ARM) — วาดภาพผ่าน OpenGL ES ของ LibretroDroid
+        coreLibrary = "libarmsx2_shim.so",
+        realCore = "libarmsx2_libretro_android.so",
+        extensions = setOf("iso", "chd", "cso", "zso", "bin", "img", "mdf", "nrg", "gz", "elf", "m3u"),
+        hasAnalog = true,
+        accentStart = 0xFF1E2A78, accentEnd = 0xFF5B6CFF,
+        biosNoteTh = "ต้องใช้ BIOS ของ PS2 ที่ดัมพ์จากเครื่องของคุณเอง: ตั้งค่า PS2 → นำเข้าไฟล์ BIOS (เลือกไฟล์ .bin หรือ .zip ที่มี BIOS อยู่ข้างใน)",
+        biosNoteEn = "Needs a PS2 BIOS dumped from your own console: PS2 settings → Import BIOS file (pick the .bin, or a .zip that contains it).",
+        biosDir = "pcsx2/bios",
+        biosRequired = true,
+        minSdk = 28, // core จาก buildbot build ด้วย Android API 28
+        isBeta = true, // บรีฟรอบ 5 ข้อ 5: ยังไม่นิ่ง (core ARMSX2 เองก็ติดป้าย experimental)
     ),
     GB(
         id = "gb",
