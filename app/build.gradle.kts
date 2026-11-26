@@ -37,7 +37,9 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.allemulator.app"
+        // ชื่อแพ็กเกจบน Play Store — ต้องตรงกับที่ตั้งไว้ใน Play Console และ "ห้ามเปลี่ยน" หลังเผยแพร่
+        // (namespace ด้านบนเป็นแค่ชื่อแพ็กเกจของโค้ด ไม่เกี่ยวกับ Play Store)
+        applicationId = "com.chirat.emux"
         minSdk = 26 // Android 8.0 ตามบรีฟ
         targetSdk = 36
         versionCode = 3 // เพิ่มทุกครั้งที่อัปโหลดขึ้น Play Console
