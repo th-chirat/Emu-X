@@ -11,6 +11,13 @@
  */
 package com.allemulator.feature.player.gamepad
 
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowCompat
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalView
+import android.app.Activity
 import com.allemulator.core.emulation.tr
 import android.content.res.Configuration
 import androidx.compose.foundation.background
@@ -28,7 +35,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -117,6 +123,18 @@ fun LayoutEditorScreen(onBack: () -> Unit, viewModel: LayoutEditorViewModel = hi
     val buttons = layout?.forOrientation(landscape) ?: return
     val selected = buttons.firstOrNull { it.id == selectedId }
 
+    // ซ่อนแถบสถานะ/แถบนำทางเหมือนตอนเล่นเกม → ตำแหน่งปุ่มตรงกับในเกมเป๊ะ และปุ่มไม่จมใต้แถบสถานะ
+    val view = LocalView.current
+    DisposableEffect(Unit) {
+        val window = (view.context as? Activity)?.window
+        val controller = window?.let { WindowCompat.getInsetsController(it, view) }
+        controller?.apply {
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            hide(WindowInsetsCompat.Type.systemBars())
+        }
+        onDispose { controller?.show(WindowInsetsCompat.Type.systemBars()) }
+    }
+
     Box(Modifier.fillMaxSize().background(Color(0xFF05070F))) {
         // พื้นที่จำลอง "จอเกม" ให้กะตำแหน่งปุ่มได้
         Box(
@@ -129,7 +147,7 @@ fun LayoutEditorScreen(onBack: () -> Unit, viewModel: LayoutEditorViewModel = hi
         }
 
         // ปุ่มที่ลากได้
-        BoxWithConstraints(Modifier.fillMaxSize()) {
+        BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding()) {
             val density = LocalDensity.current
             val w = with(density) { maxWidth.toPx() }
             val h = with(density) { maxHeight.toPx() }
@@ -159,8 +177,13 @@ fun LayoutEditorScreen(onBack: () -> Unit, viewModel: LayoutEditorViewModel = hi
         }
 
         // แถบบน: กลับ / รีเซ็ต / บันทึก
+        // แนวนอน: อยู่ในช่วงกลาง (เหนือพื้นที่จอเกม) ไม่ทับปุ่ม L/R ที่อยู่ริมซ้าย-ขวา
         Row(
-            Modifier.fillMaxWidth().statusBarsPadding().padding(12.dp),
+            Modifier
+                .align(Alignment.TopCenter)
+                .then(if (landscape) Modifier.fillMaxWidth(0.62f) else Modifier.fillMaxWidth())
+                .safeDrawingPadding()
+                .padding(12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -176,7 +199,7 @@ fun LayoutEditorScreen(onBack: () -> Unit, viewModel: LayoutEditorViewModel = hi
                 Modifier
                     .align(Alignment.TopCenter)
                     .widthIn(max = 360.dp)
-                    .statusBarsPadding()
+                    .safeDrawingPadding()
                     .padding(top = 72.dp, start = 16.dp, end = 16.dp)
                     .glass(RoundedCornerShape(24.dp))
                     .padding(16.dp),

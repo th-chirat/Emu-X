@@ -15,6 +15,10 @@
  */
 package com.allemulator.feature.library
 
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.platform.LocalConfiguration
+import android.content.res.Configuration
 import com.allemulator.core.designsystem.settings.BiosGuideDialog
 import com.allemulator.core.emulation.tr
 import android.net.Uri
@@ -214,7 +218,7 @@ fun LibraryScreen(
                         icon = Icons.Rounded.CreateNewFolder, tint = Color(system.accentStart),
                     )
                     GlassButton(
-                        tr("เลือกไฟล์เกม / .zip", "Choose game file / .zip"),
+                        (if ("zip" in system.extensions) tr("เลือกไฟล์เกม / .zip", "Choose game file / .zip") else tr("เลือกไฟล์เกม", "Choose game file")),
                         { showAddChoice = false; pickFiles.launch(arrayOf("*/*")) },
                         icon = Icons.Rounded.Add, tint = Color(system.accentStart),
                     )
@@ -235,28 +239,61 @@ fun LibraryScreen(
     }
 }
 
-/** หน้าว่าง (ยังไม่มีเกม): ไอคอนใหญ่ + คำอธิบาย + ปุ่มเลือกโฟลเดอร์ */
+/**
+ * หน้าว่าง (ยังไม่มีเกม): ไอคอนใหญ่ + คำอธิบาย + ปุ่มเลือกโฟลเดอร์/ไฟล์
+ * แนวนอน: จอเตี้ย → ไอคอนซ้าย ข้อความ+ปุ่มขวา และเลื่อนขึ้นลงได้
+ * (เดิมเรียงลงล่างอย่างเดียว ปุ่มหลุดจอจนเพิ่มเกมไม่ได้ เพราะปุ่ม + ถูกซ่อนตอนยังไม่มีเกม)
+ */
 @Composable
 private fun EmptyState(system: GameSystem, onAddFolder: () -> Unit, onAddFiles: () -> Unit) {
-    Column(
-        Modifier.fillMaxSize().padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        ConsoleIcon(system, Modifier.size(140.dp))
-        Spacer(Modifier.height(24.dp))
+    val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    if (landscape) {
+        Row(
+            Modifier.fillMaxSize().padding(horizontal = 48.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            ConsoleIcon(system, Modifier.size(140.dp))
+            Spacer(Modifier.width(40.dp))
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                EmptyStateContent(system, onAddFolder, onAddFiles, Alignment.Start, TextAlign.Start)
+            }
+        }
+    } else {
+        Column(
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            ConsoleIcon(system, Modifier.size(140.dp))
+            Spacer(Modifier.height(24.dp))
+            EmptyStateContent(system, onAddFolder, onAddFiles, Alignment.CenterHorizontally, TextAlign.Center)
+        }
+    }
+}
+
+@Composable
+private fun EmptyStateContent(
+    system: GameSystem,
+    onAddFolder: () -> Unit,
+    onAddFiles: () -> Unit,
+    align: Alignment.Horizontal,
+    textAlign: TextAlign,
+) {
+    Column(horizontalAlignment = align) {
         Text(tr("ยังไม่มีเกม ${system.displayName}", "No ${system.displayName} games yet"), style = MaterialTheme.typography.titleLarge, color = GlassColors.TextPrimary)
         Spacer(Modifier.height(8.dp))
         Text(
-            tr("เลือกโฟลเดอร์ที่เก็บเกม หรือเลือกไฟล์เกม/.zip ทีละไฟล์\nรองรับ: ", "Choose the folder with your games, or pick game/.zip files\nSupported: ") +
+            // .zip พูดถึงเฉพาะเครื่องที่รับ zip (PS2 ไม่รับ — แผ่นใหญ่เกินจะแตกไฟล์ลงเครื่อง)
+            (if ("zip" in system.extensions) tr("เลือกโฟลเดอร์ที่เก็บเกม หรือเลือกไฟล์เกม/.zip ทีละไฟล์\nรองรับ: ", "Choose the folder with your games, or pick game/.zip files\nSupported: ")
+            else tr("เลือกโฟลเดอร์ที่เก็บเกม หรือเลือกไฟล์เกมทีละไฟล์\nรองรับ: ", "Choose the folder with your games, or pick game files\nSupported: ")) +
                 system.extensions.joinToString(" ") { ".$it" },
             color = GlassColors.TextSecondary,
-            textAlign = TextAlign.Center,
+            textAlign = textAlign,
             style = MaterialTheme.typography.bodyMedium,
         )
         system.biosNote?.let {
             Spacer(Modifier.height(8.dp))
-            Text(it, color = GlassColors.TextSecondary, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyMedium)
+            Text(it, color = GlassColors.TextSecondary, textAlign = textAlign, style = MaterialTheme.typography.bodyMedium)
         }
         if (system.biosRequired) {
             var guide by remember { mutableStateOf(false) }
@@ -264,10 +301,10 @@ private fun EmptyState(system: GameSystem, onAddFolder: () -> Unit, onAddFiles: 
             TextButton(onClick = { guide = true }) { Text(tr("วิธีติดตั้ง BIOS", "How to install the BIOS")) }
             if (guide) BiosGuideDialog(system, onDismiss = { guide = false })
         }
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(20.dp))
         GlassButton(tr("เลือกโฟลเดอร์เกม", "Choose game folder"), onAddFolder, icon = Icons.Rounded.CreateNewFolder, tint = Color(system.accentStart))
         Spacer(Modifier.height(12.dp))
-        GlassButton(tr("เลือกไฟล์เกม / .zip", "Choose game file / .zip"), onAddFiles, icon = Icons.Rounded.Add, tint = Color(system.accentStart))
+        GlassButton((if ("zip" in system.extensions) tr("เลือกไฟล์เกม / .zip", "Choose game file / .zip") else tr("เลือกไฟล์เกม", "Choose game file")), onAddFiles, icon = Icons.Rounded.Add, tint = Color(system.accentStart))
     }
 }
 

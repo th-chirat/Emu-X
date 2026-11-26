@@ -25,9 +25,12 @@ val keystoreProps = Properties().apply {
     if (f.exists()) f.inputStream().use { load(it) }
 }
 
-// รหัส AdMob — ถ้าไม่ตั้งใน gradle.properties จะใช้รหัสทดสอบของ Google
-val admobAppId = (findProperty("admobAppId") as String?) ?: "ca-app-pub-3940256099942544~3347511713"
-val admobInterstitialId = (findProperty("admobInterstitialId") as String?) ?: "ca-app-pub-3940256099942544/1033173712"
+// รหัส AdMob ทดสอบของ Google — รุ่น debug ใช้ตัวนี้เสมอ (กดโฆษณาจริงในแอพตัวเอง = AdMob มองว่าโกงคลิก)
+val testAdmobAppId = "ca-app-pub-3940256099942544~3347511713"
+val testAdmobInterstitialId = "ca-app-pub-3940256099942544/1033173712"
+// รหัสจริง (ตั้งใน gradle.properties) — ใช้กับ release; ไม่ได้ตั้ง = ใช้รหัสทดสอบ
+val admobAppId = (findProperty("admobAppId") as String?) ?: testAdmobAppId
+val admobInterstitialId = (findProperty("admobInterstitialId") as String?) ?: testAdmobInterstitialId
 
 android {
     namespace = "com.allemulator.app"
@@ -37,7 +40,7 @@ android {
         applicationId = "com.allemulator.app"
         minSdk = 26 // Android 8.0 ตามบรีฟ
         targetSdk = 36
-        versionCode = 1
+        versionCode = 2 // เพิ่มทุกครั้งที่อัปโหลดขึ้น Play Console
         versionName = "1.0.0"
 
         manifestPlaceholders["admobAppId"] = admobAppId
@@ -60,7 +63,10 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix = ".debug" // ลงคู่กับเวอร์ชันจาก Play Store ได้
+            // ลงคู่กับเวอร์ชันจาก Play Store ได้ — ใส่ -PidSuffix=.demo ได้ลงอีกชุดที่ข้อมูลว่าง (ใช้ถ่ายภาพหน้าร้าน)
+            applicationIdSuffix = (findProperty("idSuffix") as String?) ?: ".debug"
+            manifestPlaceholders["admobAppId"] = testAdmobAppId
+            manifestPlaceholders["admobInterstitialId"] = testAdmobInterstitialId
             // debug รวม x86_64 ด้วย เพื่อเทสบน Android Emulator ในคอม
             ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64") }
         }

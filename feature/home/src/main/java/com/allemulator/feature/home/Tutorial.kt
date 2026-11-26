@@ -10,6 +10,10 @@
  */
 package com.allemulator.feature.home
 
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.platform.LocalConfiguration
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -78,8 +82,8 @@ private fun pages() = listOf(
         Icons.Rounded.SportsEsports,
         tr("ยินดีต้อนรับสู่ Emu-X", "Welcome to Emu-X"),
         tr(
-            "เล่นเกม PSP, PS1, Game Boy, GBC, GBA และ NES ได้ในแอพเดียว\nแอพไม่มีเกมแถมมา ใช้ไฟล์เกมที่คุณเป็นเจ้าของ",
-            "Play PSP, PS1, Game Boy, GBC, GBA and NES games in one app.\nNo games are included — use game files you own.",
+            "เล่นเกม PSP, PS1, PS2 (Beta), Game Boy, GBC, GBA และ NES ได้ในแอพเดียว\nแอพไม่มีเกมแถมมา ใช้ไฟล์เกมที่คุณเป็นเจ้าของ",
+            "Play PSP, PS1, PS2 (Beta), Game Boy, GBC, GBA and NES games in one app.\nNo games are included — use game files you own.",
         ),
     ),
     TutorialPage(
@@ -115,6 +119,7 @@ fun TutorialOverlay(onDone: () -> Unit) {
     val pager = rememberPagerState { list.size }
     val scope = rememberCoroutineScope()
     val last = pager.currentPage == list.lastIndex
+    val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     Box(
         Modifier
@@ -131,21 +136,32 @@ fun TutorialOverlay(onDone: () -> Unit) {
         Column(Modifier.fillMaxSize().padding(top = 56.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             HorizontalPager(pager, modifier = Modifier.weight(1f)) { index ->
                 val page = list[index]
-                Column(
-                    Modifier.fillMaxSize().padding(horizontal = 32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    Box(
-                        Modifier.size(120.dp).glass(RoundedCornerShape(36.dp)),
-                        contentAlignment = Alignment.Center,
+                // แนวนอน: จอเตี้ย → ไอคอนซ้าย ข้อความขวา (ถ้าเรียงลงล่าง ข้อความจะล้นจอจนมองไม่เห็น)
+                if (landscape) {
+                    Row(
+                        Modifier.fillMaxSize().padding(horizontal = 48.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(page.icon, null, tint = GlassColors.Accent, modifier = Modifier.size(56.dp))
+                        PageIcon(page.icon, 96)
+                        Spacer(Modifier.width(32.dp))
+                        Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                            Text(page.title, style = MaterialTheme.typography.headlineMedium, color = GlassColors.TextPrimary)
+                            Spacer(Modifier.height(12.dp))
+                            Text(page.body, style = MaterialTheme.typography.bodyLarge, color = GlassColors.TextSecondary)
+                        }
                     }
-                    Spacer(Modifier.height(32.dp))
-                    Text(page.title, style = MaterialTheme.typography.headlineMedium, color = GlassColors.TextPrimary, textAlign = TextAlign.Center)
-                    Spacer(Modifier.height(16.dp))
-                    Text(page.body, style = MaterialTheme.typography.bodyLarge, color = GlassColors.TextSecondary, textAlign = TextAlign.Center)
+                } else {
+                    Column(
+                        Modifier.fillMaxSize().padding(horizontal = 32.dp).verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        PageIcon(page.icon, 120)
+                        Spacer(Modifier.height(32.dp))
+                        Text(page.title, style = MaterialTheme.typography.headlineMedium, color = GlassColors.TextPrimary, textAlign = TextAlign.Center)
+                        Spacer(Modifier.height(16.dp))
+                        Text(page.body, style = MaterialTheme.typography.bodyLarge, color = GlassColors.TextSecondary, textAlign = TextAlign.Center)
+                    }
                 }
             }
 
@@ -168,5 +184,16 @@ fun TutorialOverlay(onDone: () -> Unit) {
             )
             Spacer(Modifier.width(0.dp).height(24.dp))
         }
+    }
+}
+
+/** ไอคอนประจำหน้าในกล่องกระจก */
+@Composable
+private fun PageIcon(icon: ImageVector, size: Int) {
+    Box(
+        Modifier.size(size.dp).glass(RoundedCornerShape((size * 0.3f).dp)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, null, tint = GlassColors.Accent, modifier = Modifier.size((size * 0.47f).dp))
     }
 }
