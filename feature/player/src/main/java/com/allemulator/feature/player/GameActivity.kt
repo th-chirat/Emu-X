@@ -136,7 +136,8 @@ class GameActivity : ComponentActivity() {
         getSystemService(InputManager::class.java).registerInputDeviceListener(inputListener, null)
 
         setContent {
-            AllEmulatorTheme {
+            // หน้าเล่นเกมใช้โทนมืดเสมอ (จอเกมเด่น ไม่แสบตา) ไม่ว่าจะตั้งธีมแอพเป็นอะไร
+            AllEmulatorTheme(forceDark = true) {
                 val state by viewModel.state.collectAsStateWithLifecycle()
                 Box(Modifier.fillMaxSize().background(Color.Black)) {
                     when (val s = state) {
@@ -204,7 +205,8 @@ class GameActivity : ComponentActivity() {
         // ค่าที่ปรับได้ระหว่างเล่น (เมนู → ตั้งค่า)
         var performance by remember { mutableStateOf(s.performance) }
         var overlay by remember { mutableStateOf(s.overlay) }
-        var haptics by remember { mutableStateOf(s.haptics) }
+        // สั่นเมื่อกดปุ่ม: ตั้งในหน้าตั้งค่าแอพที่เดียว (ไม่ซ้ำในเมนูเกมแล้ว)
+        val haptics = s.haptics
         var error by remember { mutableStateOf<String?>(null) }
 
         // ---- ฟังเหตุการณ์จาก emulator: เฟรมวาดเสร็จ (นับ FPS) และ error ----
@@ -376,14 +378,12 @@ class GameActivity : ComponentActivity() {
                         InGameSettings(
                             performance = performance,
                             overlay = overlay,
-                            haptics = haptics,
                             onPerformance = { new ->
                                 applyPerformance(view, s.system, performance, new)
                                 performance = new
                                 viewModel.savePerformance(new)
                             },
                             onOverlay = { overlay = it; viewModel.saveOverlay(it) },
-                            onHaptics = { haptics = it; viewModel.saveHaptics(it) },
                         )
                     },
                 )

@@ -52,8 +52,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.allemulator.core.data.db.GameEntity
 import com.allemulator.core.designsystem.glass.GlassCard
 import com.allemulator.core.designsystem.glass.GlassIconButton
-import com.allemulator.core.designsystem.glass.LanguageSwitch
-import com.allemulator.core.emulation.L10n
 import com.allemulator.core.designsystem.glass.GlassScaffold
 import com.allemulator.core.designsystem.glass.GlassTopBar
 import com.allemulator.core.designsystem.icons.ConsoleIcon
@@ -80,8 +78,6 @@ fun HomeScreen(
                 title = "Emu-X",
                 subtitle = tr("เลือกเครื่องเกมที่อยากเล่น", "Pick a console to play"),
                 actions = {
-                    // สวิตช์ภาษา TH / EN (บรีฟรอบ 2 ข้อ 4)
-                    LanguageSwitch(isThai = L10n.isThai, onToggle = viewModel::setThai)
                     GlassIconButton(Icons.Rounded.Settings, tr("ตั้งค่า", "Settings"), onOpenSettings)
                 },
             )
@@ -119,7 +115,7 @@ private fun SystemCard(card: SystemCardUi, onClick: () -> Unit) {
         Box(Modifier.fillMaxSize().padding(16.dp)) {
             ConsoleIcon(system, Modifier.size(96.dp).align(Alignment.Center).padding(bottom = 24.dp))
             Column(Modifier.align(Alignment.BottomStart)) {
-                Text(system.displayName, style = MaterialTheme.typography.titleLarge, color = Color.White)
+                Text(system.displayName, style = MaterialTheme.typography.titleLarge, color = GlassColors.TextPrimary)
                 Text(
                     if (card.gameCount == 0) tr("ยังไม่มีเกม", "No games yet") else tr("${card.gameCount} เกม", if (card.gameCount == 1) "1 game" else "${card.gameCount} games"),
                     style = MaterialTheme.typography.bodyMedium,
@@ -137,7 +133,7 @@ private fun RecentRow(games: List<GameEntity>, onPlay: (GameEntity) -> Unit) {
         Text(
             tr("เล่นต่อ", "Continue"),
             style = MaterialTheme.typography.titleMedium,
-            color = Color.White,
+            color = GlassColors.TextPrimary,
             modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
         )
         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -153,7 +149,7 @@ private fun RecentRow(games: List<GameEntity>, onPlay: (GameEntity) -> Unit) {
                         ConsoleIcon(system, Modifier.size(36.dp))
                         Spacer(Modifier.width(10.dp))
                         Column {
-                            Text(game.title, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelLarge)
+                            Text(game.title, color = GlassColors.TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelLarge)
                             Spacer(Modifier.height(2.dp))
                             Text(system.displayName, color = GlassColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
                         }

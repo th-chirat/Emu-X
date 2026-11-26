@@ -4,12 +4,19 @@
  * ตั้งค่าทั่วไปของแอพ (เปิดจากเฟืองหน้าแรก)
  *
  *   ลบโฆษณาตลอดชีพ : ปุ่มซื้อ (แสดงราคาจาก Play Store) + กู้คืนการซื้อ
- *   ทั่วไป          : สั่นเมื่อกดปุ่ม
+ *   ทั่วไป          : ภาษา (สวิตช์ TH/EN), ธีม (ตามระบบ/สว่าง/มืด), สั่นเมื่อกดปุ่ม, ดูวิธีใช้งาน
  *   เกี่ยวกับ        : เวอร์ชัน, นโยบายความเป็นส่วนตัว, ซอร์สโค้ด, license ของ emulator
  * -----------------------------------------------------------------------------
  */
 package com.allemulator.feature.settings
 
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Row
+import com.allemulator.core.emulation.ThemePrefs
+import com.allemulator.core.emulation.ThemeMode
+import com.allemulator.core.emulation.L10n
+import com.allemulator.core.emulation.AppLanguage
+import com.allemulator.core.designsystem.glass.LanguageSwitch
 import com.allemulator.core.emulation.tr
 import com.allemulator.core.designsystem.settings.ChipChoice
 import com.allemulator.core.designsystem.settings.NavRow
@@ -72,6 +79,20 @@ class AppSettingsViewModel @Inject constructor(
     val haptics = settings.haptics.stateIn(viewModelScope, SharingStarted.Eagerly, true)
     fun setHaptics(on: Boolean) = viewModelScope.launch { settings.setHaptics(on) }
 
+    /** สวิตช์ภาษา (ย้ายมาจากหน้าแรก — บรีฟรอบ 4 ข้อ 2): เปลี่ยนทันทีแล้วค่อยบันทึก */
+    fun setThai(thai: Boolean) {
+        val lang = if (thai) AppLanguage.TH else AppLanguage.EN
+        L10n.set(lang)
+        viewModelScope.launch { settings.setLanguage(lang) }
+    }
+
+    /** โหมดสี: ตามระบบ / สว่าง / มืด (บรีฟรอบ 4 ข้อ 3) */
+    val themeMode = settings.themeMode.stateIn(viewModelScope, SharingStarted.Eagerly, ThemePrefs.mode.value)
+    fun setThemeMode(mode: ThemeMode) {
+        ThemePrefs.set(mode)
+        viewModelScope.launch { settings.setThemeMode(mode) }
+    }
+
     /** เปิดหน้าสอนใช้งานอีกครั้ง (ขึ้นทับหน้าแรก) */
     fun showTutorial() = viewModelScope.launch { settings.setTutorialSeen(false) }
 }
@@ -105,6 +126,7 @@ fun AppSettingsScreen(
     val price by viewModel.billing.price.collectAsStateWithLifecycle()
     val message by viewModel.billing.messages.collectAsStateWithLifecycle()
     val haptics by viewModel.haptics.collectAsStateWithLifecycle()
+    val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     var showLicenses by remember { mutableStateOf(false) }
 
     GlassScaffold {
@@ -124,10 +146,10 @@ fun AppSettingsScreen(
                 GlassSection("Emu-X Premium") {
                     if (premium) {
                         Icon(Icons.Rounded.CheckCircle, null, tint = Color(0xFF5BE38A))
-                        Text(tr("คุณเป็นสมาชิก Premium ตลอดชีพ ไม่มีโฆษณาอีกต่อไป ขอบคุณที่สนับสนุน!", "You have lifetime Premium — no more ads. Thanks for your support!"), color = Color.White)
+                        Text(tr("คุณเป็นสมาชิก Premium ตลอดชีพ ไม่มีโฆษณาอีกต่อไป ขอบคุณที่สนับสนุน!", "You have lifetime Premium — no more ads. Thanks for your support!"), color = GlassColors.TextPrimary)
                     } else {
                         Icon(Icons.Rounded.Block, null, tint = GlassColors.Beta)
-                        Text(tr("จ่ายครั้งเดียว ไม่มีโฆษณาตลอดชีพ", "Pay once, no ads forever"), color = Color.White, style = MaterialTheme.typography.titleMedium)
+                        Text(tr("จ่ายครั้งเดียว ไม่มีโฆษณาตลอดชีพ", "Pay once, no ads forever"), color = GlassColors.TextPrimary, style = MaterialTheme.typography.titleMedium)
                         Text(tr("โฆษณาแสดงไม่เกิน 1 ครั้งทุก 1 ชั่วโมง และจะไม่ขึ้นระหว่างเล่นเกม", "Ads show at most once an hour and never during gameplay"), color = GlassColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
                         GlassButton(
                             text = tr("ลบโฆษณา ", "Remove ads ") + (price ?: ""),
@@ -142,13 +164,23 @@ fun AppSettingsScreen(
 
                 // ---------------- ทั่วไป ----------------
                 GlassSection(tr("ทั่วไป", "General")) {
+                    // ภาษา: ข้อความซ้าย + สวิตช์ TH/EN ขวา
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(tr("ภาษา", "Language"), color = GlassColors.TextPrimary, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                        LanguageSwitch(isThai = L10n.isThai, onToggle = viewModel::setThai)
+                    }
+                    ChipChoice(
+                        tr("ธีม", "Theme"),
+                        ThemeMode.entries.map { it to it.title },
+                        themeMode,
+                    ) { viewModel.setThemeMode(it) }
                     SwitchRow(tr("สั่นเมื่อกดปุ่มจอย", "Vibrate on button press"), haptics, { viewModel.setHaptics(it) })
                     NavRow(tr("ดูวิธีใช้งานอีกครั้ง", "Show tutorial again"), { viewModel.showTutorial(); onBack() })
                 }
 
                 // ---------------- เกี่ยวกับ ----------------
                 GlassSection(tr("เกี่ยวกับ", "About")) {
-                    Text(tr("Emu-X เวอร์ชัน $versionName", "Emu-X version $versionName"), color = Color.White)
+                    Text(tr("Emu-X เวอร์ชัน $versionName", "Emu-X version $versionName"), color = GlassColors.TextPrimary)
                     Text(
                         tr("แอพนี้ไม่มีเกมหรือ BIOS แถมมาให้ กรุณาใช้ไฟล์เกมที่คุณเป็นเจ้าของโดยชอบด้วยกฎหมายเท่านั้น", "This app includes no games or BIOS. Only use game files you legally own."),
                         color = GlassColors.TextSecondary,

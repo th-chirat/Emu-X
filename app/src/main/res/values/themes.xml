@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- ธีมระดับระบบ (ก่อน Compose วาด): พื้นหลังเข้ม กันจอขาวแวบตอนเปิดแอพ -->
+<!-- ธีมระดับระบบ (ก่อน Compose วาด): สีพื้นตามโหมดสีของเครื่อง (สว่าง = values, มืด = values-night) กันจอแวบตอนเปิดแอพ -->
 <resources>
-    <color name="glass_background">#FF070A18</color>
+    <color name="glass_background">#FFF1F2FA</color>
 
     <style name="Theme.AllEmulator" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/glass_background</item>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- โหมดมืดของเครื่อง: พื้นหลังตอนเปิดแอพเป็นสีเข้ม (ก่อน Compose วาด) -->
+<resources>
+    <color name="glass_background">#FF070A18</color>
+</resources>

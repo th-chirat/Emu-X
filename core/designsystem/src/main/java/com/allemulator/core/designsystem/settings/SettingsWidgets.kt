@@ -38,7 +38,7 @@ fun SwitchRow(title: String, checked: Boolean, onChange: (Boolean) -> Unit, subt
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f)) {
-            Text(title, color = Color.White, style = MaterialTheme.typography.bodyLarge)
+            Text(title, color = GlassColors.TextPrimary, style = MaterialTheme.typography.bodyLarge)
             subtitle?.let { Text(it, color = GlassColors.TextSecondary, style = MaterialTheme.typography.bodyMedium) }
         }
         Switch(checked = checked, onCheckedChange = onChange)
@@ -53,7 +53,7 @@ fun NavRow(title: String, onClick: () -> Unit, subtitle: String? = null) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f)) {
-            Text(title, color = Color.White, style = MaterialTheme.typography.bodyLarge)
+            Text(title, color = GlassColors.TextPrimary, style = MaterialTheme.typography.bodyLarge)
             subtitle?.let { Text(it, color = GlassColors.TextSecondary, style = MaterialTheme.typography.bodyMedium) }
         }
         Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = GlassColors.TextSecondary)
@@ -65,7 +65,7 @@ fun NavRow(title: String, onClick: () -> Unit, subtitle: String? = null) {
 @Composable
 fun <T> ChipChoice(title: String, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
     Column {
-        Text(title, color = Color.White, style = MaterialTheme.typography.bodyLarge)
+        Text(title, color = GlassColors.TextPrimary, style = MaterialTheme.typography.bodyLarge)
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -75,11 +75,11 @@ fun <T> ChipChoice(title: String, options: List<Pair<T, String>>, selected: T, o
                 val on = value == selected
                 Text(
                     label,
-                    color = Color.White,
+                    color = GlassColors.TextPrimary,
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier
-                        .background(if (on) GlassColors.Accent.copy(alpha = 0.55f) else Color.White.copy(alpha = 0.08f), CircleShape)
-                        .border(1.dp, if (on) GlassColors.Accent else Color.White.copy(alpha = 0.2f), CircleShape)
+                        .background(if (on) GlassColors.Accent.copy(alpha = 0.55f) else GlassColors.TextPrimary.copy(alpha = 0.06f), CircleShape)
+                        .border(1.dp, if (on) GlassColors.Accent else GlassColors.TextPrimary.copy(alpha = 0.2f), CircleShape)
                         .clickable { onSelect(value) }
                         .padding(horizontal = 14.dp, vertical = 8.dp),
                 )

@@ -78,7 +78,7 @@ fun GlassSearchField(
                 value = value,
                 onValueChange = onValueChange,
                 singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.White),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = GlassColors.TextPrimary),
                 cursorBrush = SolidColor(GlassColors.Accent),
                 modifier = Modifier.fillMaxWidth(),
             )

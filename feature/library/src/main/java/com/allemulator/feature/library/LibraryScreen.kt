@@ -176,18 +176,21 @@ fun LibraryScreen(
             }
         }
 
-        // ปุ่ม + (บรีฟข้อ 1.2) — โชว์เสมอ กดแล้วเลือกได้ว่าจะเพิ่ม "โฟลเดอร์" หรือ "ไฟล์/zip"
-        GlassFab(
-            Icons.Rounded.Add,
-            tr("เพิ่มเกม", "Add games"),
-            onClick = { showAddChoice = true },
-            modifier = Modifier.align(Alignment.BottomEnd).navigationBarsPadding().padding(24.dp),
-        )
+        // ปุ่ม + (บรีฟข้อ 1.2) กดแล้วเลือกได้ว่าจะเพิ่ม "โฟลเดอร์" หรือ "ไฟล์/zip"
+        // ซ่อนตอนยังไม่มีเกม เพราะหน้าว่างมีปุ่มเพิ่มเกม 2 ปุ่มอยู่แล้ว (ไม่ให้ซ้ำ — บรีฟรอบ 4 ข้อ 4)
+        if (state.loaded && state.totalCount > 0) {
+            GlassFab(
+                Icons.Rounded.Add,
+                tr("เพิ่มเกม", "Add games"),
+                onClick = { showAddChoice = true },
+                modifier = Modifier.align(Alignment.BottomEnd).navigationBarsPadding().padding(24.dp),
+            )
+        }
 
         state.message?.let { msg ->
             Text(
                 msg,
-                color = Color.White,
+                color = GlassColors.TextPrimary,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .navigationBarsPadding()
@@ -241,7 +244,7 @@ private fun EmptyState(system: GameSystem, onAddFolder: () -> Unit, onAddFiles: 
     ) {
         ConsoleIcon(system, Modifier.size(140.dp))
         Spacer(Modifier.height(24.dp))
-        Text(tr("ยังไม่มีเกม ${system.displayName}", "No ${system.displayName} games yet"), style = MaterialTheme.typography.titleLarge, color = Color.White)
+        Text(tr("ยังไม่มีเกม ${system.displayName}", "No ${system.displayName} games yet"), style = MaterialTheme.typography.titleLarge, color = GlassColors.TextPrimary)
         Spacer(Modifier.height(8.dp))
         Text(
             tr("เลือกโฟลเดอร์ที่เก็บเกม หรือเลือกไฟล์เกม/.zip ทีละไฟล์\nรองรับ: ", "Choose the folder with your games, or pick game/.zip files\nSupported: ") +
@@ -291,7 +294,7 @@ private fun GameRow(
             }
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                Text(game.title, color = Color.White, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(game.title, color = GlassColors.TextPrimary, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
                     "${game.fileName}  •  ${formatSize(game.sizeBytes)}",
                     color = GlassColors.TextSecondary,

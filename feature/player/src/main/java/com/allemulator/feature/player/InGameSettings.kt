@@ -9,7 +9,6 @@
  *     (บางค่า เช่น ความละเอียดของ PSP อาจมีผลเต็มที่หลังเปิดเกมใหม่ — เป็นข้อจำกัดของ core)
  *   - ฟิลเตอร์ภาพ (ปกติ / คมชัด / LCD / CRT)
  *   - ข้อมูลบนจอ: FPS / CPU / RAM / อุณหภูมิแบต
- *   - การสั่นเมื่อกดปุ่ม
  * ทุกค่าถูกบันทึกเป็นค่าตั้งค่าของเครื่องเกมนั้นด้วย
  * -----------------------------------------------------------------------------
  */
@@ -34,10 +33,8 @@ import com.allemulator.core.emulation.tr
 fun InGameSettings(
     performance: PerformanceSettings,
     overlay: OverlaySettings,
-    haptics: Boolean,
     onPerformance: (PerformanceSettings) -> Unit,
     onOverlay: (OverlaySettings) -> Unit,
-    onHaptics: (Boolean) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Section(tr("ความลื่นของเกม", "Game performance"))
@@ -64,9 +61,6 @@ fun InGameSettings(
         SwitchRow("CPU", overlay.showCpu, { onOverlay(overlay.copy(showCpu = it)) })
         SwitchRow("RAM", overlay.showRam, { onOverlay(overlay.copy(showRam = it)) })
         SwitchRow(tr("อุณหภูมิแบตเตอรี่", "Battery temperature"), overlay.showBatteryTemp, { onOverlay(overlay.copy(showBatteryTemp = it)) })
-
-        Section(tr("ปุ่มควบคุม", "Controls"))
-        SwitchRow(tr("สั่นเมื่อกดปุ่มจอย", "Vibrate on button press"), haptics, onHaptics)
     }
 }
 

@@ -14,6 +14,7 @@
  */
 package com.allemulator.app
 
+import com.allemulator.core.designsystem.theme.AllEmulatorTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.getValue
@@ -87,7 +88,8 @@ fun AppNavHost(
             )
         }
         composable<LayoutEditorRoute> {
-            LayoutEditorScreen(onBack = { nav.popBackStack() })
+            // หน้าแก้ผังปุ่มจำลองจอเกม → ใช้โทนมืดเหมือนหน้าเล่นเกมเสมอ
+            AllEmulatorTheme(forceDark = true) { LayoutEditorScreen(onBack = { nav.popBackStack() }) }
         }
         composable<AppSettingsRoute> {
             AppSettingsScreen(

@@ -33,5 +33,6 @@ dependencies {
     implementation(libs.compose.ui.tooling.preview)
     debugImplementation(libs.compose.ui.tooling)
     api(libs.haze)
+    implementation(libs.androidx.core.ktx) // WindowCompat: สีไอคอนแถบสถานะตามธีม
     implementation(project(":core:emulation"))
 }

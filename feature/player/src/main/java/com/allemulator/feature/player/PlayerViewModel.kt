@@ -134,8 +134,6 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch { settings.setOverlay(r.system, value) }
     }
 
-    fun saveHaptics(on: Boolean) = viewModelScope.launch { settings.setHaptics(on) }
-
     private fun ready() = _state.value as? PlayerState.Ready
 
     override fun onCleared() {

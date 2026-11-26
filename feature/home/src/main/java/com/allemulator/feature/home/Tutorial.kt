@@ -143,7 +143,7 @@ fun TutorialOverlay(onDone: () -> Unit) {
                         Icon(page.icon, null, tint = GlassColors.Accent, modifier = Modifier.size(56.dp))
                     }
                     Spacer(Modifier.height(32.dp))
-                    Text(page.title, style = MaterialTheme.typography.headlineMedium, color = Color.White, textAlign = TextAlign.Center)
+                    Text(page.title, style = MaterialTheme.typography.headlineMedium, color = GlassColors.TextPrimary, textAlign = TextAlign.Center)
                     Spacer(Modifier.height(16.dp))
                     Text(page.body, style = MaterialTheme.typography.bodyLarge, color = GlassColors.TextSecondary, textAlign = TextAlign.Center)
                 }
@@ -155,7 +155,7 @@ fun TutorialOverlay(onDone: () -> Unit) {
                     Box(
                         Modifier
                             .size(if (i == pager.currentPage) 10.dp else 8.dp)
-                            .background(if (i == pager.currentPage) GlassColors.Accent else Color.White.copy(alpha = 0.3f), CircleShape),
+                            .background(if (i == pager.currentPage) GlassColors.Accent else GlassColors.TextPrimary.copy(alpha = 0.3f), CircleShape),
                     )
                 }
             }

@@ -22,6 +22,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.allemulator.core.emulation.AppLanguage
+import com.allemulator.core.emulation.ThemeMode
 import com.allemulator.core.emulation.ControllerLayout
 import com.allemulator.core.emulation.ControllerLayouts
 import com.allemulator.core.emulation.GameSystem
@@ -100,6 +101,10 @@ class SettingsRepository @Inject constructor(
     val language: Flow<AppLanguage?> = store.data.map { AppLanguage.fromCode(it[KEY_LANGUAGE]) }.distinctUntilChanged()
     suspend fun setLanguage(lang: AppLanguage) { store.edit { it[KEY_LANGUAGE] = lang.code } }
 
+    /** โหมดสีของแอพ: ตามระบบ / สว่าง / มืด (ค่าเริ่มต้น = ตามระบบ) */
+    val themeMode: Flow<ThemeMode> = store.data.map { ThemeMode.fromCode(it[KEY_THEME]) ?: ThemeMode.SYSTEM }.distinctUntilChanged()
+    suspend fun setThemeMode(mode: ThemeMode) { store.edit { it[KEY_THEME] = mode.code } }
+
     /** ผู้ใช้ดูหน้าสอนใช้งาน (ครั้งแรกที่เปิดแอพ) แล้วหรือยัง */
     val tutorialSeen: Flow<Boolean> = store.data.map { it[KEY_TUTORIAL_SEEN] ?: false }.distinctUntilChanged()
     suspend fun setTutorialSeen(seen: Boolean) { store.edit { it[KEY_TUTORIAL_SEEN] = seen } }
@@ -130,5 +135,6 @@ class SettingsRepository @Inject constructor(
         val KEY_FIRST_LAUNCH = longPreferencesKey("first_launch_at")
         val KEY_LANGUAGE = stringPreferencesKey("language")
         val KEY_TUTORIAL_SEEN = booleanPreferencesKey("tutorial_seen")
+        val KEY_THEME = stringPreferencesKey("theme_mode")
     }
 }

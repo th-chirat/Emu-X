@@ -27,7 +27,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import com.allemulator.core.designsystem.theme.GlassColors
+import com.allemulator.core.designsystem.theme.LocalGlassPalette
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlin.math.cos
@@ -55,17 +55,19 @@ fun LiquidBackground(
         label = "t",
     )
 
+    // อ่านชุดสี (มืด/สว่าง) ก่อน เพราะในตัววาด Canvas อ่าน CompositionLocal ไม่ได้
+    val palette = LocalGlassPalette.current
     Box(modifier.fillMaxSize()) {
         Canvas(
             Modifier
                 .fillMaxSize()
                 .then(if (hazeState != null) Modifier.hazeSource(hazeState) else Modifier),
         ) {
-            drawRect(GlassColors.Background)
-            blob(GlassColors.BlobA, 0.20f + 0.10f * cos(t), 0.18f + 0.08f * sin(t), 0.65f)
-            blob(GlassColors.BlobB, 0.85f + 0.08f * sin(t * 2), 0.35f + 0.10f * cos(t), 0.55f)
-            blob(GlassColors.BlobC, 0.30f + 0.12f * sin(t), 0.80f + 0.06f * cos(t * 2), 0.60f)
-            blob(GlassColors.BlobD, 0.80f + 0.06f * cos(t), 0.90f + 0.08f * sin(t), 0.45f)
+            drawRect(palette.background)
+            blob(palette.blobA, 0.20f + 0.10f * cos(t), 0.18f + 0.08f * sin(t), 0.65f)
+            blob(palette.blobB, 0.85f + 0.08f * sin(t * 2), 0.35f + 0.10f * cos(t), 0.55f)
+            blob(palette.blobC, 0.30f + 0.12f * sin(t), 0.80f + 0.06f * cos(t * 2), 0.60f)
+            blob(palette.blobD, 0.80f + 0.06f * cos(t), 0.90f + 0.08f * sin(t), 0.45f)
             tint?.let { blob(it, 0.55f + 0.15f * sin(t), 0.50f + 0.12f * cos(t), 0.70f) }
         }
         content()

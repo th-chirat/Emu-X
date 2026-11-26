@@ -12,6 +12,7 @@ package com.allemulator.app
 import android.app.Application
 import com.allemulator.core.data.SettingsRepository
 import com.allemulator.core.emulation.L10n
+import com.allemulator.core.emulation.ThemePrefs
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,5 +35,8 @@ class AllEmulatorApp : Application() {
         // อ่านค่าภาษาครั้งแรกแบบรอ (เร็วมาก ไม่กี่ ms) เพื่อไม่ให้หน้าจอแรกกระพริบเปลี่ยนภาษา
         runBlocking { settings.language.first() }?.let(L10n::set)
         appScope.launch { settings.language.filterNotNull().collect(L10n::set) }
+        // โหมดสี (ตามระบบ/สว่าง/มืด) — โหลดก่อนวาดหน้าแรก กันหน้าจอกระพริบเปลี่ยนสี
+        ThemePrefs.set(runBlocking { settings.themeMode.first() })
+        appScope.launch { settings.themeMode.collect(ThemePrefs::set) }
     }
 }

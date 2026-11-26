@@ -107,10 +107,10 @@ fun GlassButton(
         horizontalArrangement = Arrangement.Center,
     ) {
         if (icon != null) {
-            Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+            Icon(icon, contentDescription = null, tint = GlassColors.TextPrimary, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(8.dp))
         }
-        Text(text, style = MaterialTheme.typography.labelLarge, color = Color.White)
+        Text(text, style = MaterialTheme.typography.labelLarge, color = GlassColors.TextPrimary)
     }
 }
 
@@ -134,7 +134,7 @@ fun GlassIconButton(
             .clickable(interactionSource = source, indication = null, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription, tint = Color.White, modifier = Modifier.size((size * 0.5f).dp))
+        Icon(icon, contentDescription, tint = GlassColors.TextPrimary, modifier = Modifier.size((size * 0.5f).dp))
     }
 }
 
@@ -166,7 +166,7 @@ fun GlassTopBar(
         }
         Column(Modifier.weight(1f)) {
             // จอแคบ (เช่น ตั้งการแสดงผลใหญ่) ตัวหนังสือจะย่อลงเองให้อ่านได้ครบ ไม่ถูกตัดเป็น "..."
-            ShrinkToFitText(title, MaterialTheme.typography.headlineMedium, Color.White, minSize = 16f)
+            ShrinkToFitText(title, MaterialTheme.typography.headlineMedium, GlassColors.TextPrimary, minSize = 16f)
             if (subtitle != null) {
                 ShrinkToFitText(subtitle, MaterialTheme.typography.bodyMedium, GlassColors.TextSecondary, minSize = 11f)
             }

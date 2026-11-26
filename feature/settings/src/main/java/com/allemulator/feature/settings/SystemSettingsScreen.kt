@@ -169,7 +169,7 @@ fun SystemSettingsScreen(
 
                         ChipChoice(
                             tr("ข้ามเฟรม (ช่วยให้ลื่นขึ้นแต่ภาพกระตุกเล็กน้อย)", "Frame skip (smoother, slightly choppy picture)"),
-                            listOf(0 to tr("ปิด", "Close"), -1 to tr("อัตโนมัติ", "Auto"), 1 to "1", 2 to "2", 3 to "3"),
+                            listOf(0 to tr("ปิด", "Off"), -1 to tr("อัตโนมัติ", "Auto"), 1 to "1", 2 to "2", 3 to "3"),
                             perf.frameSkip,
                         ) { v -> viewModel.updatePerformance { it.copy(frameSkip = v) } }
 
